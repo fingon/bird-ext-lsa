@@ -16,6 +16,7 @@ flush_lsa(struct top_hash_entry *en, struct proto_ospf *po)
   OSPF_TRACE(D_EVENTS,
 	     "Going to remove LSA Type: %04x, Id: %R, Rt: %R, Age: %u, Seqno: 0x%x",
 	     en->lsa.type, en->lsa.id, en->lsa.rt, en->lsa.age, en->lsa.sn);
+  elsa_lsa_deleted(po->elsa, en->lsa.type);
   s_rem_node(SNODE en);
   if (en->lsa_body != NULL)
     mb_free(en->lsa_body);
@@ -555,7 +556,10 @@ lsa_install_new(struct proto_ospf *po, struct ospf_lsa_header *lsa, u32 domain, 
   en->ini_age = en->lsa.age;
 
   if (change)
+  {
     schedule_rtcalc(po);
+    elsa_lsa_changed(po->elsa, lsa->type);
+  }
 
   return en;
 }

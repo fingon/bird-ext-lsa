@@ -474,6 +474,8 @@ ospf_disp(timer * timer)
   WALK_LIST(oa, po->area_list)
     area_disp(oa);
 
+  elsa_dispatch(po->elsa);
+
   /* Age LSA DB */
   ospf_age(po);
 

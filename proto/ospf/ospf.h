@@ -48,6 +48,7 @@ do { if ((p->debug & D_PACKETS) || OSPF_FORCE_DEBUG) \
 #include "nest/locks.h"
 #include "conf/conf.h"
 #include "lib/string.h"
+#include "elsa.h"
 
 #define OSPF_PROTO 89
 
@@ -776,6 +777,7 @@ struct proto_ospf
   int lsab_size, lsab_used;
   linpool *nhpool;		/* Linpool used for next hops computed in SPF */
   u32 router_id;
+  elsa elsa;
 };
 
 struct ospf_iface_patt

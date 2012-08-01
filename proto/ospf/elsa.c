@@ -4,42 +4,39 @@
  * Author: Markus Stenberg <fingon@iki.fi>
  *
  * Created:       Wed Aug  1 14:01:30 2012 mstenber
- * Last modified: Wed Aug  1 14:04:43 2012 mstenber
- * Edit time:     3 min
+ * Last modified: Wed Aug  1 14:28:14 2012 mstenber
+ * Edit time:     6 min
  *
  */
 
-#include "elsa.h"
-
-/* function code 8176(0x1FF0): experimental, U-bit=1, Area Scope */
-#define LSA_T_AC        0xBFF0 /* Auto-Configuration LSA */
-
-struct elsa_struct {
-  bool need_prefix_assignment;
-};
+#include "elsa_internal.h"
 
 elsa elsa_create(elsa_client client)
 {
   elsa e;
-  e = elsai_calloc(sizeof(*e));
+  e = elsai_calloc(client, sizeof(*e));
+  e->client = client;
+  elsa_ac_init(e);
   return e;
 }
 
 void elsa_destroy(elsa e)
 {
-  elsai_free(e);
+  elsa_ac_uninit(e);
+  elsai_free(e->client, e);
 }
 
 void elsa_lsa_changed(elsa e, elsa_lsatype lsatype)
 {
   assert(e);
-  e->need_prefix_assignment = true;
+  if (lsatype == LSA_T_AC)
+    e->need_ac = true;
 }
 
 void elsa_lsa_deleted(elsa e, elsa_lsatype lsatype)
 {
   assert(e);
-  e->need_prefix_assignment = true;
+  e->need_ac = true;
 }
 
 bool elsa_supports_lsatype(elsa_lsatype lsatype)
@@ -49,8 +46,9 @@ bool elsa_supports_lsatype(elsa_lsatype lsatype)
 
 void elsa_dispatch(elsa e)
 {
-  if (need_prefix_assignment)
+  if (e->need_ac)
     {
-      /* XXX */
+      elsa_ac(e);
+      e->need_ac = false;
     }
 }
