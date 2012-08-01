@@ -18,3 +18,14 @@
 
 # ignore files created by autoconf, except configure
 /autom4te.cache
+
+# editor files
+*~
+.#*
+#*#
+
+# cscope 
+cscope.files
+cscope.out
+
+
