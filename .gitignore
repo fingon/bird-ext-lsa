@@ -1,0 +1,20 @@
+# manually created .gitignore file for the BIRD Internet Routing Daemon #
+
+# Custom #
+##########
+
+# ignore executables created by make
+/bird
+/birdc
+
+# ignore ./configure
+/configure
+
+# ignore files create by ./configure
+/Makefile
+/config.log
+/config.status
+/obj
+
+# ignore files created by autoconf, except configure
+/autom4te.cache
