@@ -8,8 +8,8 @@
  *       All rights reserved
  *
  * Created:       Wed Aug  1 14:23:23 2012 mstenber
- * Last modified: Wed Aug  1 15:00:45 2012 mstenber
- * Edit time:     6 min
+ * Last modified: Wed Aug  1 17:50:41 2012 mstenber
+ * Edit time:     8 min
  *
  */
 
@@ -27,13 +27,15 @@
 struct elsa_struct {
   elsa_client client;
   bool need_ac;
-  struct list_head local_prefixes;
+  struct list_head aps;
 };
 
 /* AC code */
 
 typedef struct elsa_prefix_struct {
-  unsigned char addr[16];
+  /* In network byte order - we can just memcmp from the
+   * data we get off the wire. */
+  unsigned short addr[8];
   unsigned char len;
 } *elsa_prefix;
 
@@ -41,9 +43,10 @@ typedef struct elsa_prefix_struct {
 
 /* XXX: Backward compatibility with old code - get rid of these! */
 typedef uint32_t u32;
+typedef unsigned short u16;
 typedef unsigned char u8;
 
-typedef struct elsa_prefix_node_struct
+typedef struct elsa_ap_struct
 {
   /* In-list structure */
   struct list_head list;
@@ -64,7 +67,7 @@ typedef struct elsa_prefix_node_struct
   u8 pa_priority;               /* The prefix assignment priority of
                                    the router responsible for this prefix.
                                    Only relevant for assigned prefixes. */
-} *elsa_prefix_node;
+} *elsa_ap;
 
 /* AC-specific internal API */
 void elsa_ac(elsa elsa);

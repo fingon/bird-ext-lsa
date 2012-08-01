@@ -4,8 +4,8 @@
  * Author: Markus Stenberg <fingon@iki.fi>
  *
  * Created:       Wed Aug  1 13:31:21 2012 mstenber
- * Last modified: Wed Aug  1 15:05:48 2012 mstenber
- * Edit time:     30 min
+ * Last modified: Wed Aug  1 19:04:43 2012 mstenber
+ * Edit time:     32 min
  *
  */
 
@@ -99,8 +99,8 @@ elsa_lsa elsai_lsa_create(elsa_client client,
 elsa_lsatype elsai_las_get_type(elsa_lsa lsa);
 uint32_t elsai_las_get_rid(elsa_lsa lsa);
 uint32_t elsai_las_get_lsid(elsa_lsa lsa);
-uint32_t elsai_las_get_body(elsa_lsa lsa, unsigned char **body, size_t *body_len);
-uint32_t elsai_las_get_elsa_data(elsa_lsa lsa, unsigned char **data, size_t *data_len);
+void elsai_las_get_body(elsa_lsa lsa, unsigned char **body, size_t *body_len);
+void elsai_las_get_elsa_data(elsa_lsa lsa, unsigned char **data, size_t *data_len);
 
 /* Increment LSA reference count by 1. */
 void elsai_lsa_incref(elsa_lsa lsa);
@@ -120,13 +120,5 @@ void elsai_add_lsa(elsa_client client, elsa_lsa lsa);
  * reference count of the LSA by 1 (as the ownership is moved over to
  * the non-ELSA code).*/
 void elsai_delete_lsa(elsa_client client, elsa_lsa lsa);
-
-/************************************ Prefix / IP address handling interface */
-
-/* This results in foo::/prefixlen */
-const char *elsa_prefix_to_string(elsa_prefix prefix);
-
-/* This results in foo::1 (for example) */
-const char *elsa_ip_to_string(elsa_ip ip);
 
 #endif /* ELSA_H */

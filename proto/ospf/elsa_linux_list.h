@@ -5,6 +5,8 @@
 #ifndef _LINUX_LIST_H
 #define _LINUX_LIST_H
 
+/* START - snipped bits from within includes */
+
 struct list_head {
   struct list_head *next, *prev;
 };
@@ -19,6 +21,13 @@ struct hlist_node {
 
 #define LIST_POISON1 ((void *)0xdeadbeef)
 #define LIST_POISON2 ((void *)0xfeedbeef)
+
+#define container_of(ptr, type, member) ({              \
+ const typeof( ((type *)0)->member ) *__mptr = (ptr);   \
+ (type *)( (char *)__mptr - offsetof(type,member) );})
+
+
+/* END - snipped bits from within includes */
 
 /*
  * Simple doubly linked list implementation.
