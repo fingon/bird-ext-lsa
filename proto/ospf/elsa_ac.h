@@ -1,12 +1,12 @@
 /*
  * $Id: elsa_ac.h $
  *
- * Author: Markus Stenberg <fingon@iki.fi>
- *         Benjamin Paterson <paterson.b@gmail.com>
+ * Author: Benjamin Paterson <paterson.b@gmail.com>
+ *         Markus Stenberg <fingon@iki.fi>
  *
  * Created:       Wed Aug  1 19:06:06 2012 mstenber
- * Last modified: Thu Aug  2 11:39:19 2012 mstenber
- * Edit time:     15 min
+ * Last modified: Thu Aug  2 15:57:29 2012 mstenber
+ * Edit time:     30 min
  *
  */
 
@@ -30,12 +30,23 @@
    represent the TLV (including type, length + padding) */
 #define LSA_AC_TLV_SPACE(x) (4 + (((x + 3) / 4) * 4))
 
+/* If x is the prefix length in bits, computes the number of
+   bytes necessary to represent the prefix (including padding
+   to 32-bit multiple length) as:
+   length(1 byte) options(1 byte) reserved(2 bytes) prefix(variable) */
+#define IPV6_PREFIX_SPACE(x) ((((x) + 63) / 32) * 4)
+
+/* If x is the prefix length in bits, computes the number of
+   bytes necessary to represent the prefix, NOT INCLUDING padding */
+#define IPV6_PREFIX_SPACE_NOPAD(x) (4 + (((x) + 7) / 8))
+
 /******************************************************************* AC TLVs */
 
 struct ospf_lsa_ac_tlv_header
 {
   u16 type;
   u16 length;
+  u32 value[];
 };
 
 
@@ -68,7 +79,7 @@ struct ospf_lsa_ac_tlv_v_ifap /* One Interface Prefixes */
   u32 rest[]; // Assigned Prefix TLVs
 };
 
-/*************************************************** Iterating functionality */
+/**************************** Benjamin-style macros on top of elsa interface */
 
 static void *
 find_next_tlv(void *lsa,
@@ -78,148 +89,58 @@ find_next_tlv(void *lsa,
               u16 *read_type,
               u16 *read_size);
 
-/* Look at the given data entry. Return true if it's desirable to
- * continue iteration.
- */
-
-#define ITERATOR(t,name) bool (*name)(t d, void *context)
-#define ITERATOR2(t1,t2,name) bool (*name)(t1 d1, t2 d2, void *context)
-#define ITERATOR3(t1,t2,t3,name) bool (*name)(t1 d1, t2 d2, t3 d3, void *context)
-
-/* Base AC LSA iteration */
-
-typedef ITERATOR(elsa_lsa, lsa_iterator);
-
-static bool iterate_ac_lsa(elsa e, lsa_iterator fun, void *context)
-{
-  elsa_lsa lsa;
-
-  for (lsa = elsai_get_lsa_by_type(e->client, LSA_T_AC) ; lsa ;
+#define LOOP_ELSA_AC_LSA(e,lsa)                                 \
+  for (lsa = elsai_get_lsa_by_type(e->client, LSA_T_AC) ; lsa ; \
        lsa = elsai_get_lsa_by_type_next(e->client, lsa))
-    {
-      if (!fun(lsa, context))
-        return false;
-    }
-  return true;
-}
 
-/* IFAP within AC LSA */
-typedef ITERATOR2(elsa_lsa, struct ospf_lsa_ac_tlv_v_ifap *, ifap_iterator);
-
-struct context_ac_ifap_struct {
-  ifap_iterator ifap_iterator;
-  void *ifap_context;
-};
-
-static bool iterator_ac_lsa_ifap(elsa_lsa lsa,
-                                 void *context)
-{
-  struct context_ac_ifap_struct *ctx = context;
-  unsigned int offset = 0;
-  struct ospf_lsa_ac_tlv_v_ifap *tlv;
-  u16 tlv_size;
-
-  unsigned char *body;
-  size_t size;
-
-  elsai_las_get_body(lsa, &body, &size);
-  while ((tlv = find_next_tlv(body, size, &offset, LSA_AC_TLV_T_IFAP,
-                              NULL, &tlv_size)))
-    {
-      if (tlv_size < (sizeof(*tlv)-sizeof(tlv->header)))
+#define LOOP_AC_LSA_IFAP_START(lsa,tlv)                                 \
+do {                                                                    \
+  unsigned int offset = 0;                                              \
+  u16 tlv_size;                                                         \
+  unsigned char *body;                                                  \
+  size_t size;                                                          \
+                                                                        \
+  elsai_lsa_get_body(lsa, &body, &size);                                \
+  while ((tlv = find_next_tlv(body, size, &offset, LSA_AC_TLV_T_IFAP,   \
+                              NULL, &tlv_size)))                        \
+    {                                                                   \
+      if (tlv_size < (sizeof(*tlv)-sizeof(tlv->header)))                \
         break;
-      ctx->ifap_iterator(lsa, tlv, ctx->ifap_context);
-    }
-  return true;
-}
 
-static bool iterate_ac_lsa_ifap(elsa e, ifap_iterator fun, void *context)
-{
-  struct context_ac_ifap_struct ctx = { .ifap_iterator = fun,
-                                        .ifap_context = context};
-  return iterate_ac_lsa(e, iterator_ac_lsa_ifap, &ctx);
-}
+#define LOOP_END } } while(0)
 
-/* ASP within IFAP within AC LSA (...) */
-typedef ITERATOR3(elsa_lsa,
-                  struct ospf_lsa_ac_tlv_v_ifap *,
-                  struct ospf_lsa_ac_tlv_v_asp *,
-                  asp_iterator);
-
-struct context_ac_ifap_asp_struct {
-  asp_iterator asp_iterator;
-  void *asp_context;
-};
-
-static bool iterator_ac_lsa_ifap_asp(elsa_lsa lsa,
-                                     struct ospf_lsa_ac_tlv_v_ifap *ifap,
-                                     void *context)
-{
-  struct context_ac_ifap_asp_struct *ctx = context;
-  unsigned int offset = 0;
-  struct ospf_lsa_ac_tlv_v_asp *tlv;
-  u16 tlv_size;
-  int size =
-    sizeof(struct ospf_lsa_ac_tlv_header) + ntohs(ifap->header.length) -
-    offsetof(struct ospf_lsa_ac_tlv_v_ifap, rest);
-  while ((tlv = find_next_tlv(ifap->rest,
-                              size,
-                              &offset, LSA_AC_TLV_T_ASP,
-                              NULL, &tlv_size)))
-    {
-      if (tlv_size < sizeof(*tlv))
+#define LOOP_IFAP_ASP_START(ifap,tlv)                           \
+do {                                                            \
+  unsigned int offset = 0;                                      \
+  u16 tlv_size;                                                 \
+  int size =                                                    \
+    sizeof(struct ospf_lsa_ac_tlv_header)                       \
+    + ntohs(ifap->header.length) -                              \
+    offsetof(struct ospf_lsa_ac_tlv_v_ifap, rest);              \
+  while ((tlv = find_next_tlv(ifap->rest,                       \
+                              size,                             \
+                              &offset, LSA_AC_TLV_T_ASP,        \
+                              NULL, &tlv_size)))                \
+    {                                                           \
+      if (tlv_size < sizeof(*tlv))                              \
         break;
-      ctx->asp_iterator(lsa, ifap, tlv, ctx->asp_context);
-    }
-  return true;
-}
 
-static bool iterate_ac_lsa_ifap_asp(elsa e, asp_iterator fun, void *context)
-{
-  struct context_ac_ifap_asp_struct ctx = { .asp_iterator = fun,
-                                            .asp_context = context};
-  return iterate_ac_lsa_ifap(e, iterator_ac_lsa_ifap_asp, &ctx);
-}
-
-/* USP within AC LSA */
-typedef ITERATOR2(elsa_lsa, struct ospf_lsa_ac_tlv_v_usp *, usp_iterator);
-
-struct context_ac_usp_struct {
-  usp_iterator usp_iterator;
-  void *usp_context;
-};
-
-static bool iterator_ac_lsa_usp(elsa_lsa lsa,
-                                 void *context)
-{
-  struct context_ac_usp_struct *ctx = context;
-  unsigned int offset = 0;
-  struct ospf_lsa_ac_tlv_v_usp *tlv;
-  u16 tlv_size;
-
-  unsigned char *body;
-  size_t size;
-
-  elsai_las_get_body(lsa, &body, &size);
-  while ((tlv = find_next_tlv(body, size, &offset, LSA_AC_TLV_T_USP,
-                              NULL, &tlv_size)))
-    {
-      if (tlv_size < (sizeof(*tlv)-sizeof(tlv->header)))
+#define LOOP_AC_LSA_USP_START(lsa,tlv)                                  \
+do {                                                                    \
+  unsigned int offset = 0;                                              \
+  u16 tlv_size;                                                         \
+  unsigned char *body;                                                  \
+  size_t size;                                                          \
+  elsai_lsa_get_body(lsa, &body, &size);                                \
+  while ((tlv = find_next_tlv(body, size, &offset, LSA_AC_TLV_T_USP,    \
+                              NULL, &tlv_size)))                        \
+    {                                                                   \
+      if (tlv_size < (sizeof(*tlv)-sizeof(tlv->header)))                \
         break;
-      ctx->usp_iterator(lsa, tlv, ctx->usp_context);
-    }
-  return true;
-}
 
-static bool iterate_ac_lsa_usp(elsa e, usp_iterator fun, void *context)
-{
-  struct context_ac_usp_struct ctx = { .usp_iterator = fun,
-                                        .usp_context = context};
-  return iterate_ac_lsa(e, iterator_ac_lsa_usp, &ctx);
-}
-
-/********************************************************* Benjamin's macros */
-
-
+#define LOOP_ELSA_IF(e,ifname)                  \
+  for (ifname = elsai_if_get(e->client);        \
+       ifname ;                                 \
+       ifname=elsai_if_get_next(e->client, ifname))
 
 #endif /* ELSA_AC_H */

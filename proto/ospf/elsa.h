@@ -4,12 +4,14 @@
  * Author: Markus Stenberg <fingon@iki.fi>
  *
  * Created:       Wed Aug  1 13:31:21 2012 mstenber
- * Last modified: Thu Aug  2 11:23:33 2012 mstenber
- * Edit time:     35 min
+ * Last modified: Thu Aug  2 16:27:21 2012 mstenber
+ * Edit time:     44 min
  *
  */
 
-/* TODO: - consider the LSA body+data handling semantics - non-copying
+/* TODO:
+ *
+ * - consider the LSA body+data handling semantics - non-copying
  * ones might be nice to have.
  */
 
@@ -22,6 +24,12 @@
  * elsa_* calls are called by the client application.
  *
  * elsai_* calls are called by ELSA code which wants to do something.
+ *
+ * General design criteria is that the data in network format should
+ * be usable directly; what that means, is that whatever we use _has_
+ * to be in network order (e.g. big endian), and therefore conversions
+ * should be done in the platform functionality. Also, the LSA data is
+ * assumed to be big endian.
  */
 
 /* Whoever includes this file should provide the appropriate
@@ -31,6 +39,7 @@
 /* e.g.
    typedef .. my stuff *elsa_client;
    typedef .. *elsa_lsa;
+   typedef .. *elsa_if;
    ( typesafety is mandatory).
  */
 
@@ -79,56 +88,37 @@ elsa_lsa elsai_get_lsa_by_type(elsa_client client, elsa_lsatype lsatype);
 elsa_lsa elsai_get_lsa_by_type_next(elsa_client client, elsa_lsa lsa);
 
 /* Get interface */
-const char *elsai_if_get(elsa_client client);
+elsa_if elsai_if_get(elsa_client client);
 
 /* Get next interface */
-const char *elsai_if_get_next(elsa_client client, const char *ifname);
+elsa_if elsai_if_get_next(elsa_client client, elsa_if ifp);
 
 
 /**************************************************** LSA handling interface */
 
-/* Create LSA.
- *
- * This should create a new elsa_lsa, and return the value to the
- * caller. The body and elsa_data should be COPIED to the lsa. The LSA
- * should remain valid until it's reference count reaches zero via
- * elsai_lsa_decref calls.  Initially created LSA should have
- * reference count of 1.
- */
-elsa_lsa elsai_lsa_create(elsa_client client,
-                          elsa_lsatype lsatype, uint32_t rid, uint32_t lsid,
-                          void *body, size_t body_len,
-                          bool copy_body,
-                          void *elsa_data, size_t elsa_data_len
-                          );
+/* Originate LSA.
+
+   rid is implicitly own router ID.
+   age/area is implicitly zero.
+*/
+void elsai_lsa_originate(elsa_client client,
+                         elsa_lsatype lsatype,
+                         uint32_t lsid,
+                         uint32_t sn,
+                         void *body, size_t body_len);
 
 /* Getters */
-elsa_lsatype elsai_las_get_type(elsa_lsa lsa);
-uint32_t elsai_las_get_rid(elsa_lsa lsa);
-uint32_t elsai_las_get_lsid(elsa_lsa lsa);
-void elsai_las_get_body(elsa_lsa lsa, unsigned char **body, size_t *body_len);
-void elsai_las_get_elsa_data(elsa_lsa lsa, unsigned char **data, size_t *data_len);
-
-/* Increment LSA reference count by 1. */
-void elsai_lsa_incref(elsa_lsa lsa);
-
-/* Decrement reference count of an LSA.
- *
- * Decrement the reference count of the LSA data structure, and if it
- * is zero, free it.
- */
-void elsai_lsa_decref(elsa_lsa lsa);
-
-/* Add LSA. This also implicitly decrements the reference count of the
- * LSA by 1 (as the ownership is moved over to the non-ELSA code). */
-void elsai_add_lsa(elsa_client client, elsa_lsa lsa);
-
-/* Delete LSA from LSADB. This also implicitly decrements the
- * reference count of the LSA by 1 (as the ownership is moved over to
- * the non-ELSA code).*/
-void elsai_delete_lsa(elsa_client client, elsa_lsa lsa);
+elsa_lsatype elsai_lsa_get_type(elsa_lsa lsa);
+uint32_t elsai_lsa_get_rid(elsa_lsa lsa);
+uint32_t elsai_lsa_get_lsid(elsa_lsa lsa);
+void elsai_lsa_get_body(elsa_lsa lsa, unsigned char **body, size_t *body_len);
+void elsai_lsa_get_elsa_data(elsa_lsa lsa, unsigned char **data, size_t *data_len);
 
 /******************************************************** Interface handling */
 
+const char * elsai_if_get_name(elsa_client client, elsa_if i);
+uint32_t elsai_if_get_index(elsa_client client, elsa_if i);
+uint32_t elsai_if_get_neigh_iface_id(elsa_client client, elsa_if i, uint32_t rid);
+uint8_t elsai_if_get_priority(elsa_client client, elsa_if i);
 
 #endif /* ELSA_H */

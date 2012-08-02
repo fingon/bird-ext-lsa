@@ -8,7 +8,7 @@
  *       All rights reserved
  *
  * Created:       Wed Aug  1 14:23:23 2012 mstenber
- * Last modified: Thu Aug  2 11:24:56 2012 mstenber
+ * Last modified: Thu Aug  2 16:28:10 2012 mstenber
  * Edit time:     9 min
  *
  */
@@ -28,7 +28,12 @@ struct elsa_struct {
   elsa_client client;
   bool need_ac;
   bool need_originate_ac;
+  int ac_sn;
   struct list_head aps;
+  struct elsa_platform_struct platform;
+
+  unsigned char buf[65536];
+  unsigned char *tail;
 };
 
 /* AC code */
