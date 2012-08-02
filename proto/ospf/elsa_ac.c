@@ -5,8 +5,8 @@
  *         Benjamin Paterson <paterson.b@gmail.com>
  *
  * Created:       Wed Aug  1 14:26:19 2012 mstenber
- * Last modified: Wed Aug  1 19:01:19 2012 mstenber
- * Edit time:     127 min
+ * Last modified: Thu Aug  2 11:27:43 2012 mstenber
+ * Edit time:     192 min
  *
  */
 
@@ -24,9 +24,9 @@
 
 #include <stdio.h>
 #include "elsa_internal.h"
+#include "elsa_ac.h"
 
 #include <stdlib.h>
-#include <arpa/inet.h>
 #include <string.h>
 
 /* FIXME - remove the direct md5 dependency */
@@ -68,45 +68,45 @@ configure_add_prefix(elsa e,
   ap = elsai_calloc(e->client, sizeof(*ap));
   if (!ap)
     return false;
-
   ap->px = *px;
   ap->rid = rid;
   ap->my_rid = my_rid;
   ap->pa_priority = pa_priority;
   ap->valid = 1;
   strncpy(ap->ifname, ifname, ELSA_IFNAME_LEN);
-  list_add(&ap->list, &e->aps);
+#if 0
+  /* XXX - This should be done later */
   if (!platform_handle_prefix(ap, true))
     {
       elsai_free(e->client, ap);
       return false;
     }
+#endif /* 0 */
+  /* Mark that we need to originate new AC LSA at some point */
+  e->need_originate_ac = true;
+
+  /* Add to list of active assignments */
+  list_add(&ap->list, &e->aps);
+
   return true;
 }
 
 static bool
 configure_del_prefix(elsa e, elsa_ap ap)
 {
-  if (!platform_handle_prefix(ap, false))
-    return false;
+  if (ap->platform_done)
+    if (!platform_handle_prefix(ap, false))
+      return false;
 
   /* And from the internal datastructure */
   list_del(&ap->list);
   elsai_free(e->client, ap);
 
+  /* Mark that we need to originate new AC LSA at some point */
+  e->need_originate_ac = true;
+
   return true;
 }
-
-/* Auto-Configuration LSA Type-Length-Value (TLV) types */
-#define LSA_AC_TLV_T_RHWF 1/* Router-Hardware-Fingerprint */
-#define LSA_AC_TLV_T_USP  2 /* Usable Prefix */
-#define LSA_AC_TLV_T_ASP  3 /* Assigned Prefix */
-#define LSA_AC_TLV_T_IFAP 4 /* Interface Prefixes */
-
-/* If x is the length of the TLV as specified in its
-   Length field, returns the number of bytes used to
-   represent the TLV (including type, length + padding) */
-#define LSA_AC_TLV_SPACE(x) (4 + (((x + 3) / 4) * 4))
 
 /**
  * find_next_tlv - find next TLV of specified type in AC LSA
@@ -139,7 +139,7 @@ find_next_tlv(void *lsa,
     s = (u16*)(tlv + *offset);
     tlv_type = ntohs(*s);
     tlv_size = ntohs(*(s+1));
-    *offset += 4 + tlv_size;
+    *offset += LSA_AC_TLV_SPACE(tlv_size);
 
     /* If too big, abort */
     if (*offset > size)
@@ -159,13 +159,21 @@ find_next_tlv(void *lsa,
 }
 
 static bool
-net_in_net(elsa_prefix p, elsa_prefix net)
+net_in_net_raw(void *p, int p_len, void *net, int net_len)
 {
-  if (p->len < net->len)
+  if (p_len < net_len)
     return false;
+  assert(p_len >= 0 && net_len >= 0 && p_len <= 128 && net_len <= 128);
   /* p's mask has >= net's mask length */
   /* XXX - care about sub-/16 correctness */
-  return memcmp(net->addr, p->addr, net->len) == 0;
+  return memcmp(net, p, net_len/8) == 0;
+}
+
+
+static bool
+net_in_net(elsa_prefix p, elsa_prefix net)
+{
+  return net_in_net_raw(p->addr, p->len, net->addr, net->len);
 }
 
 /**
@@ -177,7 +185,7 @@ net_in_net(elsa_prefix p, elsa_prefix net)
  * @usp: The usable prefix
  */
 static elsa_ap
-assignment_find(elsa e, unsigned char *ifname, elsa_prefix usp)
+assignment_find(elsa e, const char *ifname, elsa_prefix usp)
 {
   u32 my_rid = elsai_get_rid(e->client);
   elsa_ap ap;
@@ -200,7 +208,7 @@ assignment_find(elsa e, unsigned char *ifname, elsa_prefix usp)
  * @i: Number of the iteration-
  */
 static void
-random_prefix(elsa_prefix px, elsa_prefix pxsub, u32 rid, unsigned char *ifname, int i)
+random_prefix(elsa_prefix px, elsa_prefix pxsub, u32 rid, const char *ifname, int i)
 {
   struct MD5Context ctxt;
   char md5sum[16];
@@ -222,153 +230,25 @@ random_prefix(elsa_prefix px, elsa_prefix pxsub, u32 rid, unsigned char *ifname,
   memset(&pxsub->addr[st], 0, 16-2*st);
 }
 
-struct ospf_lsa_ac_tlv_header
-{
-  u16 type;
-  u16 length;
+struct in_use_asp_struct {
+  elsa e;
+  elsa_prefix px;
 };
 
-
-struct ospf_lsa_ac_tlv_v_usp /* One Usable Prefix */
+static bool in_use_asp_iterator(elsa_lsa lsa,
+                                struct ospf_lsa_ac_tlv_v_ifap *ifap,
+                                struct ospf_lsa_ac_tlv_v_asp *asp,
+                                void *context)
 {
-  struct ospf_lsa_ac_tlv_header header;
-  u8 pxlen;
-  u8 reserved8;
-  u16 reserved16;
-  u32 prefix[];
-};
+  struct in_use_asp_struct *ctx = (struct in_use_asp_struct *) context;
 
-struct ospf_lsa_ac_tlv_v_asp /* One Assigned Prefix */
-{
-  struct ospf_lsa_ac_tlv_header header;
-  u8 pxlen;
-  u8 reserved8;
-  u16 reserved16;
-  u32 prefix[];
-};
-
-struct ospf_lsa_ac_tlv_v_ifap /* One Interface Prefixes */
-{
-  struct ospf_lsa_ac_tlv_header header;
-  u32 id;
-  u8 pa_priority;
-  u8 reserved8_1;
-  u8 reserved8_2;
-  u8 pa_pxlen; // must be PA_PXLEN_D or PA_PXLEN_SUB
-  u32 rest[]; // Assigned Prefix TLVs
-};
-
-
-/* Look at the given data entry. Return true if it's desirable to
- * continue iteration.
- */
-
-#define ITERATOR(type,name) bool (*name)(type data, void *context)
-
-typedef ITERATOR(elsa_lsa, lsa_iterator);
-typedef ITERATOR(struct ospf_lsa_ac_tlv_v_ifap *, ifap_iterator);
-typedef ITERATOR(struct ospf_lsa_ac_tlv_v_asp *, asp_iterator);
-
-static bool iterate_ac_lsa(elsa e, lsa_iterator fun, void *context)
-{
-  elsa_lsa lsa;
-
-  for (lsa = elsai_get_lsa_by_type(e->client, LSA_T_AC) ; lsa ;
-       lsa = elsai_get_lsa_by_type_next(e->client, lsa))
+  if (net_in_net_raw(asp->prefix, asp->pxlen, ctx->px->addr, ctx->px->len))
     {
-      if (!fun(lsa, context))
+      if (elsai_get_rid(ctx->e->client) != elsai_las_get_rid(lsa))
         return false;
     }
   return true;
 }
-
-struct context_ac_ifap_struct {
-  ifap_iterator ifap_iterator;
-  void *ifap_context;
-};
-
-static bool iterator_ac_lsa_ifap(elsa_lsa lsa,
-                                 void *context)
-{
-  struct context_ac_ifap_struct *ctx = context;
-  unsigned int offset = 0;
-  struct ospf_lsa_ac_tlv_v_ifap *tlv;
-  u16 tlv_size;
-
-  unsigned char *body;
-  size_t size;
-
-  assert(lsa);
-  elsai_las_get_body(lsa, &body, &size);
-  while ((tlv = find_next_tlv(body, size, &offset, LSA_AC_TLV_T_IFAP,
-                              NULL, &tlv_size)))
-    {
-      if (tlv_size < (sizeof(*tlv)-sizeof(tlv->header)))
-        break;
-      ctx->ifap_iterator(tlv, ctx->ifap_context);
-    }
-  return true;
-}
-
-static bool iterate_ac_lsa_ifap(elsa e, ifap_iterator fun, void *context)
-{
-  struct context_ac_ifap_struct ctx = { .ifap_iterator = fun,
-                                        .ifap_context = context};
-  return iterate_ac_lsa(e, iterator_ac_lsa_ifap, &ctx);
-}
-
-struct context_ac_ifap_asp_struct {
-  asp_iterator asp_iterator;
-  void *asp_context;
-};
-
-static bool iterator_ac_lsa_ifap_asp(struct ospf_lsa_ac_tlv_v_ifap *ifap,
-                                     void *context)
-{
-  struct context_ac_ifap_asp_struct *ctx = context;
-  unsigned int offset = 0;
-  struct ospf_lsa_ac_tlv_v_asp *tlv;
-  u16 tlv_size;
-  int size =
-    sizeof(struct ospf_lsa_ac_tlv_header) + ntohs(ifap->header.length) -
-    offsetof(struct ospf_lsa_ac_tlv_v_ifap, rest);
-  while ((tlv = find_next_tlv(ifap->rest,
-                              size,
-                              &offset, LSA_AC_TLV_T_ASP,
-                              NULL, &tlv_size)))
-    {
-      if (tlv_size < sizeof(*tlv))
-        break;
-      ctx->asp_iterator(tlv, ctx->asp_context);
-    }
-  return true;
-}
-
-  
-static bool iterate_ac_lsa_ifap_asp(elsa e, asp_iterator fun, void *context)
-{
-  struct context_ac_ifap_asp_struct ctx = { .asp_iterator = fun,
-                                            .asp_context = context};
-  return iterate_ac_lsa_ifap(e, iterator_ac_lsa_ifap_asp, &ctx);
-}
-
-
-#define PARSE_LSA_AC_USP_START(usp,en)                                                    \
-if((en = ospf_hash_find_ac_lsa_first(oa->po->gr, oa->areaid)) != NULL)                    \
-{                                                                                         \
-  do {                                                                                    \
-    if(ospf_lsa_ac_is_reachable(po, en))                                                  \
-    {                                                                                     \
-      struct ospf_lsa_ac *tlv;                                                            \
-      unsigned int size = en->lsa.length - sizeof(struct ospf_lsa_header);                \
-      unsigned int offset = 0;                                                            \
-      while((tlv = find_next_tlv(en->lsa_body, &offset, size, LSA_AC_TLV_T_USP)) != NULL) \
-      {                                                                                   \
-        usp = (struct ospf_lsa_ac_tlv_v_usp *)(tlv->value);
-
-#define PARSE_LSA_AC_USP_END(en) } } } while((en = ospf_hash_find_ac_lsa_next(en)) != NULL); }
-#define PARSE_LSA_AC_USP_BREAKIF(x,en) if(x) break; } if(x) break; } } while((en = ospf_hash_find_ac_lsa_next(en)) != NULL); }
-
 
 /**
  * in_use - Determine if a prefix is already in use
@@ -382,59 +262,16 @@ static bool
 in_use(elsa e, elsa_prefix px)
 {
   elsa_ap ap;
-  u32 my_rid = elsai_get_rid(e->client);
 
   /* Local state */
   list_for_each_entry(ap, &e->aps, list)
     if (net_in_net(&ap->px, px) || net_in_net(px, &ap->px))
       return true;
 
-  PARSE_LSA_AC_IFAP_START(ifap, en)
-  {
-    if(en->lsa.rt != my_id) // don't check our own LSAs
-    {
-      PARSE_LSA_AC_ASP_START(asp, ifap)
-      {
-        ip_addr addr;
-        unsigned int len;
-        u8 pxopts;
-        u16 rest;
-
-        lsa_get_ipv6_prefix((u32 *)(asp) , &addr, &len, &pxopts, &rest);
-        // test if assigned prefix is part of current usable prefix
-        if(net_in_net(addr, len, usp_addr, usp_len))
-        {
-          /* add prefix to list of used prefixes */
-          pxn = mb_alloc(p->pool, sizeof(struct prefix_node));
-          add_tail(used, NODE pxn);
-          pxn->px.addr = addr;
-          pxn->px.len = len;
-          pxn->pa_priority = ifap->pa_priority;
-          pxn->rid = en->lsa.rt;
-
-          if(ifa->pa_pxlen == PA_PXLEN_D)
-          {
-            // test if assigned prefix is stealable
-            if((ifap->pa_priority < lowest_pa_priority
-                || (ifap->pa_priority == lowest_pa_priority && ifap->pa_pxlen < lowest_pa_pxlen))
-               && (!is_reserved_prefix(addr, len, usp_addr, usp_len)))
-            {
-              *steal_addr = ipa_and(addr,ipa_mkmask(PA_PXLEN_D));
-              *steal_len = PA_PXLEN_D;
-              lowest_pa_priority = ifap->pa_priority;
-              lowest_pa_pxlen = ifap->pa_pxlen;
-              lowest_rid = en->lsa.rt;
-              *found_steal = 1;
-            }
-          }
-        }
-      }
-      PARSE_LSA_AC_ASP_END;
-    }
-  }
-  PARSE_LSA_AC_IFAP_END(en);
-
-  return 0;
+  struct in_use_asp_struct ctx;
+  ctx.e = e;
+  ctx.px = px;
+  return !iterate_ac_lsa_ifap_asp(e, in_use_asp_iterator, &ctx);
 }
 
 /**
@@ -442,18 +279,18 @@ in_use(elsa e, elsa_prefix px)
  * a usable prefix and a list of sub-prefixes in use
  * @pxu: The usable prefix
  * @px: A pointer to the prefix structure. Length must be set.
- * @used: The list of sub-prefixes already in use
  *
  * This function stores a unused prefix of specified length from
- * the usable prefix @pxu, and returns PXCHOOSE_SUCCESS,
- * or stores IPA_NONE into @px->ip and returns PXCHOOSE_FAILURE if
+ * the usable prefix @pxu, and returns true,
+ * or clears px->addr and returns false if
  * all prefixes are in use.
  *
  * This function will never select the numerically highest /64 prefix
  * in the usable prefix (it is considered reserved).
  */
-static int
-choose_prefix(elsa_prefix pxu, elsa_prefix px, list used, u32 rid, struct ospf_iface *ifa)
+static bool
+choose_prefix(elsa e, elsa_prefix pxu, elsa_prefix px,
+              const char *ifname)
 {
   /* (Stupid) Algorithm:
      - try a random prefix until success or 10 attempts have passed
@@ -467,80 +304,69 @@ choose_prefix(elsa_prefix pxu, elsa_prefix px, list used, u32 rid, struct ospf_i
          * find one of the used prefixes which contains/is contained in this prefix then
            increment prefix to the first prefix of correct length that
            is not covered by that used prefix / does not cover that used prefix */
-  elsa_ap n;
-  int looped;
-  struct prefix start_prefix;
-
+  struct elsa_prefix_struct start_prefix;
+  u32 my_rid = elsai_get_rid(e->client);
   int i;
+
   for(i=0;i<10;i++)
   {
-    random_prefix(pxu, px, rid, ifa, i);
+    random_prefix(pxu, px, my_rid, ifname, i);
     if(!in_use(e, px))
-        return PXCHOOSE_SUCCESS;
+      return true;
   }
-
-  looped = 0;
   start_prefix = *px;
-  while(looped == 0 || ipa_compare(px->addr, start_prefix.addr) < 0)
-  {
-    if(!net_in_net(px->addr, px->len, pxu->addr, pxu->len))
+  do
     {
-      px->addr = pxu->addr;
-      looped = 1;
+      if (!in_use(e, px))
+        {
+          return true;
+        }
+      u8 *c = (u8 *)&px->addr;
+      for (i = 64/8-1 ; i >= 0 ; i++)
+        {
+          /* If we roll over to zero, we continue iteration. */
+          if (++c[i])
+            break;
+        }
+      /* XXX - how to increment the IP address by one? */
+      if (!net_in_net(px, pxu))
+        {
+          memcpy(px->addr, pxu->addr, 16);
+        }
     }
-
-    if(!in_use(e, px))
-    {
-      return PXCHOOSE_SUCCESS;
-    }
-
-    WALK_LIST(n, used)
-    {
-      if(net_in_net(px->addr, px->len, n->px.addr, n->px.len)
-         || net_in_net(n->px.addr, n->px.len, px->addr, px->len))
-      {
-        next_prefix(px, &n->px);
-        break;
-      }
-    }
-  }
-  return PXCHOOSE_FAILURE;
+  while (memcmp(&start_prefix, px, sizeof(*px)) != 0);
+  return false;
+     
 }
 
 /**
- * ospf_pxassign_area - Run prefix assignment algorithm for
- * usable prefixes advertised by AC LSAs in a specific area.
- *
- * @oa: The area to search for LSAs in. Note that the algorithm
- * may impact interfaces that are not in this area.
+ * ospf_pxassign - Run prefix assignment algorithm for
+ * usable prefixes advertised by AC LSAs.
  */
-void
-ospf_pxassign_area(struct ospf_area *oa)
+static void
+pxassign(elsa e)
 {
-  struct proto *p = &oa->po->proto;
-  struct proto_ospf *po = oa->po;
   struct top_hash_entry *en;
   struct ospf_iface *ifa;
   elsa_ap asp, *aspn;
   struct ospf_lsa_ac_tlv_v_usp *usp;
   struct ospf_iface_prefixes *ip, *ipn;
-  int change = 0;
+  elsa_ap ap;
+  const char *ifname;
 
   //OSPF_TRACE(D_EVENTS, "Starting prefix assignment algorithm for AC LSAs in area %R", oa->areaid);
 
-  /* mark all this area's iface's assignments as invalid */
-  WALK_LIST(ifa, po->iface_list)
-  {
-    if(ifa->oa == oa)
+  /* mark all assignments as invalid */
+  list_for_each_entry(ap, &e->aps, list)
     {
-      WALK_LIST(asp, ifa->asp_list)
-      {
-        if (asp->valid)
-          asp->valid--;
-      }
+      if (ap->valid)
+        ap->valid--;
     }
-  }
 
+  for (ifname = elsai_if_get(e->client);
+       ifname ;
+       ifname=elsai_if_get_next(e->client, ifname))
+    {
   // perform the prefix assignment algorithm on each (USP, iface) tuple
   PARSE_LSA_AC_USP_START(usp,en)
   {
@@ -548,7 +374,7 @@ ospf_pxassign_area(struct ospf_area *oa)
     {
       if(ifa->oa == oa)
       {
-        change |= ospf_pxassign_usp_ifa(ifa, (struct ospf_lsa_ac_tlv_v_usp *)(usp));
+        ospf_pxassign_usp_ifa(ifa, (struct ospf_lsa_ac_tlv_v_usp *)(usp));
       }
     }
   }
@@ -563,8 +389,6 @@ ospf_pxassign_area(struct ospf_area *oa)
       {
         if(!asp->valid)
           {
-            if(asp->rid == po->router_id)
-              change = 1;
             OSPF_TRACE(D_EVENTS, "Interface %s: assignment %I/%d removed as invalid", ifa->iface->name, asp->px.addr, asp->px.len);
             configure_del_prefix(e, asp);
           }
@@ -586,19 +410,15 @@ ospf_pxassign_area(struct ospf_area *oa)
         }
     }
 
-  if(change)
-  {
-     schedule_ac_lsa(oa);
-  }
 }
 
 /** ospf_pxassign_usp_ifa - Main prefix assignment algorithm
  *
- * @ifa: The Current Interface
+ * @ifname: The Current Interface
  * @usp: The Current Usable Prefix
  */
-int
-ospf_pxassign_usp_ifa(struct ospf_iface *ifa, struct ospf_lsa_ac_tlv_v_usp *cusp)
+static int
+ospf_pxassign_usp_if(struct ospf_lsa_ac_tlv_v_usp *cusp, const char *ifname)
 {
   struct top_hash_entry *en;
   struct ospf_area *oa = ifa->oa;
@@ -1049,17 +869,10 @@ try_assign_unused(struct ospf_iface *ifa, ip_addr usp_addr, unsigned int usp_len
   struct prefix px, pxu;
 
   px.addr = IPA_NONE;
-  px.len = ifa->pa_pxlen;
-  if(ifa->pa_pxlen == PA_PXLEN_D)
-  {
-    pxu.addr = usp_addr;
-    pxu.len = usp_len;
-  }
-  else if(ifa->pa_pxlen == PA_PXLEN_SUB)
-  {
-    if(compute_reserved_prefix(&pxu.addr, &pxu.len, &usp_addr, &usp_len) == -1)
-      die("bug in prefix assignment algorithm: usable prefix too long");
-  }
+  px.len =
+    ifa->pa_pxlen;
+  pxu.addr = usp_addr;
+  pxu.len = usp_len;
   else die("bug in prefix assignment algorithm: trying to assign nonstandard length");
 
   switch(choose_prefix(&pxu, &px, *used, po->router_id, ifa))
@@ -1202,13 +1015,27 @@ try_assign_specific(struct ospf_iface *ifa, ip_addr usp_addr, unsigned int usp_l
 
 void elsa_ac_init(elsa elsa)
 {
-  INIT_LIST_HEAD(&elsa->local_prefixes);
+  INIT_LIST_HEAD(&elsa->aps);
 }
 
 void elsa_ac_uninit(elsa elsa)
 {
+  /* Get rid of the prefixes that are still hanging around */
+  while (!list_empty(elsa->aps))
+    {
+      /* If this fails, _too bad_. */
+      configure_del_prefix(elsa, list_first_entry(elsa->aps, elsa_ap, list));
+    }
 }
 
-void elsa_ac(elsa elsa)
+void elsa_ac(elsa e)
 {
+  /* Run prefix assignment */
+  pxassign(e);
+
+  /* XXX - check if it's necessary */
+  if(change)
+  {
+     schedule_ac_lsa(oa);
+  }
 }

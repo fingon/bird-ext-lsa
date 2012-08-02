@@ -8,8 +8,8 @@
  *       All rights reserved
  *
  * Created:       Wed Aug  1 14:23:23 2012 mstenber
- * Last modified: Wed Aug  1 17:50:41 2012 mstenber
- * Edit time:     8 min
+ * Last modified: Thu Aug  2 11:24:56 2012 mstenber
+ * Edit time:     9 min
  *
  */
 
@@ -27,6 +27,7 @@
 struct elsa_struct {
   elsa_client client;
   bool need_ac;
+  bool need_originate_ac;
   struct list_head aps;
 };
 
@@ -51,8 +52,10 @@ typedef struct elsa_ap_struct
   /* In-list structure */
   struct list_head list;
 
+  bool platform_done;
+
   struct elsa_prefix_struct px;
-  
+
   char ifname[ELSA_IFNAME_LEN]; /* Stored for future use. */
   u32 rid;                      /* Who is responsible for this prefix.
                                    Only relevant for assigned prefixes. */

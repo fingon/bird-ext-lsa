@@ -4,8 +4,8 @@
  * Author: Markus Stenberg <fingon@iki.fi>
  *
  * Created:       Wed Aug  1 13:31:21 2012 mstenber
- * Last modified: Wed Aug  1 19:04:43 2012 mstenber
- * Edit time:     32 min
+ * Last modified: Thu Aug  2 11:23:33 2012 mstenber
+ * Edit time:     35 min
  *
  */
 
@@ -78,6 +78,13 @@ elsa_lsa elsai_get_lsa_by_type(elsa_client client, elsa_lsatype lsatype);
 /* Get next LSA by type. */
 elsa_lsa elsai_get_lsa_by_type_next(elsa_client client, elsa_lsa lsa);
 
+/* Get interface */
+const char *elsai_if_get(elsa_client client);
+
+/* Get next interface */
+const char *elsai_if_get_next(elsa_client client, const char *ifname);
+
+
 /**************************************************** LSA handling interface */
 
 /* Create LSA.
@@ -120,5 +127,8 @@ void elsai_add_lsa(elsa_client client, elsa_lsa lsa);
  * reference count of the LSA by 1 (as the ownership is moved over to
  * the non-ELSA code).*/
 void elsai_delete_lsa(elsa_client client, elsa_lsa lsa);
+
+/******************************************************** Interface handling */
+
 
 #endif /* ELSA_H */
