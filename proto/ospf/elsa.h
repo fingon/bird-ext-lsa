@@ -4,8 +4,8 @@
  * Author: Markus Stenberg <fingon@iki.fi>
  *
  * Created:       Wed Aug  1 13:31:21 2012 mstenber
- * Last modified: Mon Aug 27 16:00:20 2012 mstenber
- * Edit time:     55 min
+ * Last modified: Mon Aug 27 18:14:57 2012 mstenber
+ * Edit time:     63 min
  *
  */
 
@@ -136,4 +136,27 @@ elsa_ac_usp elsai_ac_usp_get_next(elsa_client client, elsa_ac_usp usp);
  * and result pointer itself points at the prefix data. */
 void elsai_ac_usp_get_prefix(elsa_client client, elsa_ac_usp usp,
                              void **result, int *result_size_bits);
+
+/****************************************************** Debugging / tracing  */
+
+#define ELSA_DEBUG_LEVEL_ERROR 1
+#define ELSA_DEBUG_LEVEL_INFO 2
+#define ELSA_DEBUG_LEVEL_DEBUG 3
+
+/* Get the debug level */
+int elsai_get_log_level(void);
+/* void elsai_log(const char *file, int line, int level, const char *fmt, ...); */
+
+#define ELSA_LOG(l,fmt...)                      \
+do {                                            \
+  if (elsai_get_log_level() >= l) {             \
+    elsai_log(__FILE__, __LINE__, l, ##fmt);    \
+  }                                             \
+ } while(0)
+
+#define ELSA_ERROR(fmt...) ELSA_LOG(ELSA_DEBUG_LEVEL_ERROR, ##fmt)
+#define ELSA_INFO(fmt...) ELSA_LOG(ELSA_DEBUG_LEVEL_INFO, ##fmt)
+#define ELSA_DEBUG(fmt...) ELSA_LOG(ELSA_DEBUG_LEVEL_DEBUG, ##fmt)
+
+
 #endif /* ELSA_H */

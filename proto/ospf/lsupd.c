@@ -109,7 +109,7 @@ unknown_lsa_type(struct ospf_lsa_header *lsa)
 
 int
 ospf_lsa_flooding_allowed(struct ospf_lsa_header *lsa, u32 domain, struct ospf_iface *ifa)
-{    
+{
   u32 scope = LSA_SCOPE(lsa);
 
   /* 4.5.2 (Case 2) */
@@ -143,7 +143,7 @@ ospf_lsa_flooding_allowed(struct ospf_lsa_header *lsa, u32 domain, struct ospf_i
  * ospf_lsupd_flood - send received or generated lsa to the neighbors
  * @po: OSPF protocol
  * @n: neighbor than sent this lsa (or NULL if generated)
- * @hn: LSA header followed by lsa body in network endianity (may be NULL) 
+ * @hn: LSA header followed by lsa body in network endianity (may be NULL)
  * @hh: LSA header in host endianity (must be filled)
  * @domain: domain of LSA (must be filled)
  * @rtl: add this LSA into retransmission list
@@ -378,10 +378,10 @@ ospf_lsupd_send_list(struct ospf_neighbor *n, list * l)
       if (en == NULL)
       {
 	/* Probably flushed LSA, this should not happen */
-	log(L_WARN "OSPF: LSA disappeared (Type: %04x, Id: %R, Rt: %R)", 
+	log(L_WARN "OSPF: LSA disappeared (Type: %04x, Id: %R, Rt: %R)",
 	    lsr->lsh.type, lsr->lsh.id, lsr->lsh.rt);
 	lsr = NODE_NEXT(lsr);
-	continue;			
+	continue;
       }
 
       len2 = len + en->lsa.length;
@@ -395,7 +395,7 @@ ospf_lsupd_send_list(struct ospf_neighbor *n, list * l)
 	if (len2 > ospf_pkt_bufsize(n->ifa))
 	{
 	  /* Cannot fit in a tx buffer, skip that */
-	  log(L_WARN "OSPF: LSA too large to send (Type: %04x, Id: %R, Rt: %R)", 
+	  log(L_WARN "OSPF: LSA too large to send (Type: %04x, Id: %R, Rt: %R)",
 	      lsr->lsh.type, lsr->lsh.id, lsr->lsh.rt);
 	  lsr = NODE_NEXT(lsr);
 	  continue;
@@ -470,7 +470,7 @@ ospf_lsupd_receive(struct ospf_packet *ps_i, struct ospf_iface *ifa,
     struct ospf_lsa_header *lsa = (void *) (((u8 *) ps) + offset);
     unsigned int lsalen = ntohs(lsa->length);
     offset += lsalen;
- 
+
     if ((offset > size) || ((lsalen % 4) != 0) ||
 	(lsalen <= sizeof(struct ospf_lsa_header)))
     {
@@ -487,37 +487,37 @@ ospf_lsupd_receive(struct ospf_packet *ps_i, struct ospf_iface *ifa,
       continue;
     }
 
+    ntohlsah(lsa, &lsatmp);
+
 #ifdef OSPFv2
     /* pg 143 (2) */
-    if ((lsa->type == 0) || (lsa->type == 6) || (lsa->type > LSA_T_NSSA))
+    if ((lsatmp.type == 0) || (lsatmp.type == 6) || (lsatmp.type > LSA_T_NSSA))
     {
       log(L_WARN "Unknown LSA type from %I", n->ip);
       continue;
     }
 
     /* pg 143 (3) */
-    if ((lsa->type == LSA_T_EXT) && !oa_is_ext(ifa->oa))
+    if ((lsatmp.type == LSA_T_EXT) && !oa_is_ext(ifa->oa))
     {
       log(L_WARN "Received External LSA in stub area from %I", n->ip);
       continue;
     }
 #else /* OSPFv3 */
     /* 4.5.1 (2) */
-    if ((LSA_SCOPE(lsa) == LSA_SCOPE_AS) && !oa_is_ext(ifa->oa))
+    if ((LSA_SCOPE(&lsatmp) == LSA_SCOPE_AS) && !oa_is_ext(ifa->oa))
     {
       log(L_WARN "Received LSA with AS scope in stub area from %I", n->ip);
       continue;
     }
 
     /* 4.5.1 (3) */
-    if ((LSA_SCOPE(lsa) == LSA_SCOPE_RES))
+    if ((LSA_SCOPE(&lsatmp) == LSA_SCOPE_RES))
     {
-      log(L_WARN "Received LSA with invalid scope from %I", n->ip);
+      log(L_WARN "Received LSA with invalid scope from %I. LSA type is %X", n->ip, lsatmp.type);
       continue;
     }
 #endif
-
-    ntohlsah(lsa, &lsatmp);
 
     DBG("Update Type: %u ID: %R RT: %R, Sn: 0x%08x Age: %u, Sum: %u\n",
 	lsatmp.type, lsatmp.id, lsatmp.rt, lsatmp.sn, lsatmp.age, lsatmp.checksum);
@@ -658,7 +658,7 @@ ospf_lsupd_receive(struct ospf_packet *ps_i, struct ospf_iface *ifa,
       {
 	log(L_WARN "Received invalid LSA from %I", n->ip);
 	mb_free(body);
-	continue;	
+	continue;
       }
 
       lsadb = lsa_install_new(po, &lsatmp, domain, body);

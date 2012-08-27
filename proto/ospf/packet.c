@@ -419,6 +419,29 @@ ospf_rx_hook(sock *sk, int size)
   if (rid == po->router_id)
   {
     log(L_ERR "%s%I - received my own router ID!", mesg, sk->faddr);
+    if (config->rid_is_random
+        && po->proto.cf->rid_is_random
+        && po->proto.cf->router_id == config->router_id
+        && po->dridd) {
+      log(L_ERR "Someone should reconfigure");
+      if (memcmp(&sk->faddr, &sk->laddr, sizeof(ip_addr)) > 0) {
+        log(L_ERR ".. and it's me!");
+        /* We need to pick new one, as we're numerically inferior. */
+        /* Get rid of the old stored router id and fire off re-configuration. */
+        if (config->rid_filename) {
+          log(L_ERR "Unlinking %s", config->rid_filename);
+          unlink(config->rid_filename);
+        }
+
+        /* FIXME: Rather scary move, this. Changing runtime
+         * configuration on the fly doesn't feel right. */
+        po->proto.cf->router_id = 0;
+        config->router_id = 0,
+
+        /* FIXME: Think how this should be REALLY done. */
+        async_config();
+      }
+    }
     return 1;
   }
 

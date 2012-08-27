@@ -71,6 +71,21 @@ ospf_area_finish(void)
 }
 
 static void
+ospf_proto_start(int class)
+{
+  this_proto = proto_config_new(&proto_ospf, sizeof(struct ospf_config), class);
+  init_list(&OSPF_CFG->area_list);
+  init_list(&OSPF_CFG->vlink_list);
+  OSPF_CFG->rfc1583 = DEFAULT_RFC1583;
+  OSPF_CFG->tick = DEFAULT_OSPFTICK;
+#ifdef OSPFv3
+  OSPF_CFG->dridd = DEFAULT_OSPFDRIDD;
+  OSPF_CFG->pxassignment = DEFAULT_OSPFPXASSIGNMENT;
+  init_list(&OSPF_CFG->usp_list);
+#endif
+}
+
+static void
 ospf_proto_finish(void)
 {
   struct ospf_config *cf = OSPF_CFG;
@@ -101,6 +116,72 @@ ospf_proto_finish(void)
 
   if (!cf->abr && !EMPTY_LIST(cf->vlink_list))
     cf_error( "Vlinks cannot be used on single area router");
+
+}
+
+static void
+ospf_pxassignment_start(int b)
+{
+#ifdef OSPFv3
+  OSPF_CFG->pxassignment = b;
+#else /* OSPFv2 */
+  cf_error( "Prefix assignment can only be used with IPv6");
+#endif
+}
+
+static void
+ospf_pxassignment_finish(void)
+{
+  /* FIXME tests needed? */
+}
+
+static void
+ospf_dridd_start(int b)
+{
+#ifdef OSPFv3
+  OSPF_CFG->dridd = b;
+#else /* OSPFv2 */
+  cf_error( "Duplicate Router ID detection can only be used with IPv6");
+#endif
+}
+
+static void
+ospf_dridd_finish(void)
+{
+  /* FIXME tests needed? */
+}
+
+static void
+ospf_usp_start(void)
+{
+#ifdef OSPFv3
+  /* anything to do? */
+#else /* OSPFv2 */
+  cf_error( "Usable prefixes can only be specified with IPv6");
+#endif
+}
+
+static void
+ospf_usp_finish(void)
+{
+  /* FIXME tests needed? */
+}
+
+static void
+ospf_usp_add_manual(struct prefix px)
+{
+  static struct prefix_node *usp;
+
+  if (px.len < LSA_AC_USP_MIN_PREFIX_LENGTH 
+      || px.len > LSA_AC_USP_MAX_PREFIX_LENGTH)
+    cf_error( "Usable prefixes must be longer than %d \
+               bits and shorter than %d bits",
+               LSA_AC_USP_MIN_PREFIX_LENGTH, LSA_AC_USP_MAX_PREFIX_LENGTH);
+  usp = cfg_allocz(sizeof(struct prefix_node));
+  add_tail(&OSPF_CFG->usp_list, NODE usp);
+  usp->px.addr = px.addr;
+  usp->px.len = px.len;
+  usp->type = OSPF_USP_T_MANUAL;
 }
 
 static inline void
@@ -131,6 +212,7 @@ CF_KEYWORDS(ELIGIBLE, POLL, NETWORKS, HIDDEN, VIRTUAL, CHECK, LINK)
 CF_KEYWORDS(RX, BUFFER, LARGE, NORMAL, STUBNET, HIDDEN, SUMMARY, TAG, EXTERNAL)
 CF_KEYWORDS(WAIT, DELAY, LSADB, ECMP, LIMIT, WEIGHT, NSSA, TRANSLATOR, STABILITY)
 CF_KEYWORDS(GLOBAL, LSID, ROUTER, SELF, INSTANCE, REAL)
+CF_KEYWORDS(DUPLICATE, RID, DETECTION, USABLEPREFIX, ASSIGNMENT, LENGTH)
 
 %type <t> opttext
 %type <ld> lsadb_args
@@ -139,13 +221,7 @@ CF_GRAMMAR
 
 CF_ADDTO(proto, ospf_proto '}' { ospf_proto_finish(); } )
 
-ospf_proto_start: proto_start OSPF {
-     this_proto = proto_config_new(&proto_ospf, sizeof(struct ospf_config), $1);
-     init_list(&OSPF_CFG->area_list);
-     init_list(&OSPF_CFG->vlink_list);
-     OSPF_CFG->rfc1583 = DEFAULT_RFC1583;
-     OSPF_CFG->tick = DEFAULT_OSPFTICK;
-  }
+ospf_proto_start: proto_start OSPF { ospf_proto_start($1); }
  ;
 
 ospf_proto:
@@ -156,6 +232,9 @@ ospf_proto:
 ospf_proto_item:
    proto_item
  | RFC1583COMPAT bool { OSPF_CFG->rfc1583 = $2; }
+ | ospf_dridd
+ | ospf_pxassignment
+ | ospf_usp
  | ECMP bool { OSPF_CFG->ecmp = $2 ? DEFAULT_ECMP_LIMIT : 0; }
  | ECMP bool LIMIT expr { OSPF_CFG->ecmp = $2 ? $4 : 0; if ($4 < 0) cf_error("ECMP limit cannot be negative"); }
  | TICK expr { OSPF_CFG->tick = $2; if($2<=0) cf_error("Tick must be greater than zero"); }
@@ -353,7 +432,6 @@ ipa_ne: IPA ELIGIBLE ';'
  }
 ;
 
- 
 ospf_iface_start:
  {
   this_ipatt = cfg_allocz(sizeof(struct ospf_iface_patt));
@@ -394,6 +472,62 @@ ospf_iface:
   ospf_iface_start iface_patt_list ospf_instance_id ospf_iface_opt_list { ospf_iface_finish(); }
  ;
 
+ospf_pxassignment:
+   ospf_pxassignment_start '{' ospf_pxassignment_opts '}' { ospf_pxassignment_finish(); }
+ | ospf_pxassignment_start { ospf_pxassignment_finish(); }
+ ;
+
+ospf_pxassignment_start: PREFIX ASSIGNMENT bool
+ {
+  ospf_pxassignment_start($3);
+ }
+;
+
+ospf_pxassignment_opts:
+   /* empty */
+ | ospf_pxassignment_opts ospf_pxassignment_item ';'
+ ;
+
+ospf_pxassignment_item:
+  /* empty for the moment */
+;
+
+ospf_dridd:
+   ospf_dridd_start '{' ospf_dridd_opts '}' { ospf_dridd_finish(); }
+ | ospf_dridd_start { ospf_dridd_finish(); }
+ ;
+
+ospf_dridd_start: DUPLICATE RID DETECTION bool
+ {
+  ospf_dridd_start($4);
+ }
+;
+
+ospf_dridd_opts:
+   /* empty */
+ | ospf_dridd_opts ospf_dridd_item ';'
+ ;
+
+ospf_dridd_item:
+  /* empty for the moment */
+;
+
+ospf_usp:
+   ospf_usp_start '{' ospf_usp_opts '}' { ospf_usp_finish(); }
+ | ospf_usp_start { ospf_usp_finish(); }
+ ;
+
+ospf_usp_start: USABLEPREFIX { ospf_usp_start(); }
+;
+
+ospf_usp_opts:
+   /* empty */
+ | ospf_usp_item ospf_usp_opts
+ ;
+
+ospf_usp_item: prefix ';' { ospf_usp_add_manual($1); }
+;
+
 opttext:
     TEXT
  | /* empty */ { $$ = NULL; }
@@ -410,6 +544,9 @@ CF_CLI(SHOW OSPF, optsym, [<name>], [[Show information about OSPF protocol XXX]]
 
 CF_CLI(SHOW OSPF NEIGHBORS, optsym opttext, [<name>] [\"<interface>\"], [[Show information about OSPF neighbors]])
 { ospf_sh_neigh(proto_get_named($4, &proto_ospf), $5); };
+
+CF_CLI(SHOW OSPF USABLE, optsym, [<name>], [[Show information about usable prefixes]])
+{ ospf_sh_usp(proto_get_named($4, &proto_ospf)); };
 
 CF_CLI(SHOW OSPF INTERFACE, optsym opttext, [<name>] [\"<interface>\"], [[Show information about interface]])
 { ospf_sh_iface(proto_get_named($4, &proto_ospf), $5); };
@@ -439,7 +576,7 @@ lsadb_args:
      $$ = cfg_allocz(sizeof(struct lsadb_show_data));
    }
  | lsadb_args GLOBAL { $$ = $1; $$->scope = LSA_SCOPE_AS; }
- | lsadb_args AREA idval { $$ = $1; $$->scope = LSA_SCOPE_AREA; $$->area = $3 }
+ | lsadb_args AREA idval { $$ = $1; $$->scope = LSA_SCOPE_AREA; $$->area = $3; }
  | lsadb_args LINK { $$ = $1; $$->scope = 1; /* hack, 0 is no filter */ }
  | lsadb_args TYPE NUM { $$ = $1; $$->type = $3; }
  | lsadb_args LSID idval { $$ = $1; $$->lsid = $3; }

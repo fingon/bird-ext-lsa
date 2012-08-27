@@ -1,4 +1,5 @@
 log.c
+routerid.c
 main.c
 timer.h
 io.c
@@ -6,7 +7,6 @@ unix.h
 endian.h
 config.Y
 random.c
-
 krt.c
 krt.h
 krt.Y

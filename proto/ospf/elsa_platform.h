@@ -4,8 +4,8 @@
  * Author: Markus Stenberg <fingon@iki.fi>
  *
  * Created:       Wed Aug  1 14:09:11 2012 mstenber
- * Last modified: Mon Aug 27 14:31:21 2012 mstenber
- * Edit time:     8 min
+ * Last modified: Mon Aug 27 18:29:15 2012 mstenber
+ * Edit time:     15 min
  *
  */
 
@@ -50,5 +50,15 @@ struct elsa_platform_struct {
 
   struct elsa_lsa_struct lsa[SUPPORTED_SIMULTANEOUS_LSA_ITERATIONS];
 };
+
+#include "lib/birdlib.h"
+
+#define elsai_log(file,line,level,fmt,...)                      \
+do {                                                            \
+  /* XXX - care about the 'level'! */                           \
+  log(L_TRACE "%s:%d " fmt, file, line, ## __VA_ARGS__);        \
+ } while (0)
+
+#undef net_in_net
 
 #endif /* ELSA_PLATFORM_H */

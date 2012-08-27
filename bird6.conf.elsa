@@ -1,0 +1,43 @@
+#log syslog { debug, trace, info, remote, warning, error, auth, fatal, bug };
+log stderr all;
+log "/tmp/bird6.log" all;
+
+router id random; # can be overridden by specific protocols
+router id remember "/tmp/router_id";
+
+debug protocols {states, routes, filters, interfaces, events, packets};
+
+protocol kernel {
+	persist;		# Don't remove routes on bird shutdown
+	scan time 20;		# Scan kernel routing table every 20 seconds
+	export all;		# Default is export none
+}
+
+protocol device {
+	scan time 10;		# Scan interfaces every 10 seconds
+}
+
+protocol static {
+}
+
+protocol ospf MyOSPF {
+	prefix assignment yes;
+	duplicate rid detection yes { };
+	usableprefix {
+		fda9:b0b:ca7::/48;
+		fda9:dead:beef::/63;
+		fda9:1010:1010::/64;
+	};
+	area 0.0.0.0 {
+		stub no;
+		interface "*" {
+			hello 10;
+			retransmit 6;
+			cost 10;
+			transmit delay 5;
+			dead count 4;
+			type broadcast;
+			wait 15;
+		};
+	};
+}

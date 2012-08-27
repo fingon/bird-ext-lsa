@@ -4,8 +4,8 @@
  * Author: Markus Stenberg <fingon@iki.fi>
  *
  * Created:       Wed Aug  1 14:14:38 2012 mstenber
- * Last modified: Mon Aug 27 16:03:14 2012 mstenber
- * Edit time:     36 min
+ * Last modified: Mon Aug 27 18:13:54 2012 mstenber
+ * Edit time:     42 min
  *
  */
 
@@ -214,3 +214,11 @@ void elsai_ac_usp_get_prefix(elsa_client client, elsa_ac_usp usp,
   *result = NULL;
   *result_size_bits = 0;
 }
+
+/***************************************************************** Debugging */
+
+int elsai_get_log_level(void)
+{
+  return ELSA_DEBUG_LEVEL_DEBUG;
+}
+

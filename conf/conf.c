@@ -118,8 +118,8 @@ config_parse(struct config *c)
   if (EMPTY_LIST(c->protos))
     cf_error("No protocol is specified in the config file");
 #ifdef IPV6
-  if (!c->router_id)
-    cf_error("Router ID must be configured manually on IPv6 routers");
+  if (!c->router_id && !c->rid_is_random)
+    cf_error("Router ID must be configured on IPv6 routers");
 #endif
   return 1;
 }
@@ -176,9 +176,44 @@ config_del_obstacle(struct config *c)
     }
 }
 
+static void
+global_set_rid(struct config *new, struct config *old)
+{
+  /* random router ID generation happens if:
+     - we are configured to generate a random RID
+     AND
+     - there is no value stored in memory or we are set to not look at memory
+     AND
+     - this is a first time configuration or old config wasn't random */
+  if(new->rid_is_random && (!old || !old->router_id || !old->rid_is_random))
+  {
+    u32 rid;
+    if(new->rid_filename && (rid = read_rid(new->rid_filename)))
+    {
+      log(L_INFO "Read router id %R from file.", rid);
+      new->router_id = rid;
+    }
+    else
+    {
+      do {
+        new->router_id = random_u32();
+      } while (new->router_id == 0);
+      log(L_INFO "Randomly generated router id %R.", new->router_id);
+    }
+  }
+
+  if (!new->router_id)
+    new->router_id = old->router_id;
+
+  if(new->rid_filename)
+    write_rid(new->rid_filename, new->router_id);
+}
+
 static int
 global_commit(struct config *new, struct config *old)
 {
+  global_set_rid(new, old);
+
   if (!old)
     return 0;
 
@@ -187,8 +222,6 @@ global_commit(struct config *new, struct config *old)
       (old->listen_bgp_flags != new->listen_bgp_flags))
     log(L_WARN "Reconfiguration of BGP listening socket not implemented, please restart BIRD.");
 
-  if (!new->router_id)
-    new->router_id = old->router_id;
   if (new->router_id != old->router_id)
     return 1;
   return 0;

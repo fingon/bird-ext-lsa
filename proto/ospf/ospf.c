@@ -8,7 +8,7 @@
 
 /**
  * DOC: Open Shortest Path First (OSPF)
- * 
+ *
  * The OSPF protocol is quite complicated and its complex implemenation is
  * split to many files. In |ospf.c|, you will find mainly the interface
  * for communication with the core (e.g., reconfiguration hooks, shutdown
@@ -72,7 +72,7 @@
  * (&proto_ospf->tick). It is responsible for aging and flushing of LSAs in
  * the database, for routing table calculaction and it call area_disp() of every
  * ospf_area.
- * 
+ *
  * The function area_disp() is
  * responsible for late originating of router LSA and network LSA
  * and for cleanup before routing table calculation process in
@@ -84,7 +84,7 @@
  * BIRD's OSPF implementation respects RFC2328 in every detail, but
  * some of internal algorithms do differ. The RFC recommends making a snapshot
  * of the link-state database when a new adjacency is forming and sending
- * the database description packets based on the information in this 
+ * the database description packets based on the information in this
  * snapshot. The database can be quite large in some networks, so
  * rather we walk through a &slist structure which allows us to
  * continue even if the actual LSA we were working with is deleted. New
@@ -190,7 +190,7 @@ ospf_area_remove(struct ospf_area *oa)
 
   /* We suppose that interfaces are already removed */
   ospf_flush_area(oa->po, oa->areaid);
- 
+
   fib_free(&oa->rtr);
   fib_free(&oa->net_fib);
   fib_free(&oa->enet_fib);
@@ -218,10 +218,49 @@ static struct ospf_iface *
 ospf_find_vlink(struct proto_ospf *po, u32 voa, u32 vid)
 {
   struct ospf_iface *ifa;
-  WALK_LIST(ifa, po->iface_list) 
+  WALK_LIST(ifa, po->iface_list)
     if ((ifa->type == OSPF_IT_VLINK) && (ifa->voa->areaid == voa) && (ifa->vid == vid))
       return ifa;
   return NULL;
+}
+
+/**
+ * ospf_usp_add - Add usable prefix to protocol list
+ * @po: proto_ospf to store the value in
+ * @n: prefix to add
+ *
+ * Appends the prefix to the end of the protocol's
+ * usp_list.
+ */
+void
+ospf_usp_add(struct proto_ospf *po, struct prefix_node *n)
+{
+  struct proto *p = &po->proto;
+  struct prefix_node *ncopy;
+
+  OSPF_TRACE(D_EVENTS, "Adding prefix %I/%d to list of usable prefixes", n->px.addr, n->px.len);
+
+  ncopy = mb_allocz(p->pool, sizeof(struct prefix_node));
+  add_tail(&po->usp_list, NODE ncopy);
+  ncopy->px.addr = n->px.addr;
+  ncopy->px.len = n->px.len;
+  ncopy->type = n->type;
+}
+
+static void
+ospf_usp_reconfigure(struct proto_ospf *po, struct ospf_config *old, struct ospf_config *new)
+{
+  struct prefix_node *n, *n2;
+
+  WALK_LIST_DELSAFE(n, n2, po->usp_list)
+  {
+    rem_node(NODE n);
+    mb_free(n);
+  }
+  WALK_LIST(n,new->usp_list)
+  {
+    ospf_usp_add(po,n);
+  }
 }
 
 static int
@@ -230,8 +269,22 @@ ospf_start(struct proto *p)
   struct proto_ospf *po = (struct proto_ospf *) p;
   struct ospf_config *c = (struct ospf_config *) (p->cf);
   struct ospf_area_config *ac;
+  struct prefix_node *n;
 
   po->router_id = proto_get_router_id(p->cf);
+  po->rid_is_random = proto_get_rid_is_random(p->cf);
+#ifdef OSPFv3
+  po->dridd = c->dridd;
+  po->pxassignment = c->pxassignment;
+  if(!po->dridd && po->rid_is_random)
+    log(L_WARN "%s: Duplicate RID detection should be enabled when using a randomly generated RID", p->name);
+  init_list(&(po->usp_list));
+  WALK_LIST(n,c->usp_list)
+  {
+    ospf_usp_add(po,n);
+  }
+  po->elsa = elsa_create(po);
+#endif /* OSPFv3 */
   po->rfc1583 = c->rfc1583;
   po->ebit = 0;
   po->ecmp = c->ecmp;
@@ -736,6 +789,14 @@ ospf_reconfigure(struct proto *p, struct proto_config *c)
   if (old->abr != new->abr)
     return 0;
 
+#ifdef OSPFv3
+  if(po->dridd != new->dridd)
+    return 0; /* FIXME Can we reconfigure gracefully? */
+
+  /* Update usable prefix list */
+  ospf_usp_reconfigure(po, old, new);
+#endif
+
   po->ecmp = new->ecmp;
   po->tick = new->tick;
   po->disp_timer->recurrent = po->tick;
@@ -781,7 +842,7 @@ ospf_reconfigure(struct proto *p, struct proto_config *c)
       ospf_area_remove(oa);
 
   schedule_rtcalc(po);
-  
+
   return 1;
 }
 
@@ -997,14 +1058,14 @@ lsa_compare_for_state(const void *p1, const void *p2)
 
     return lsa1->sn - lsa2->sn;
   }
-  else 
+  else
   {
     if (lsa1->rt != lsa2->rt)
       return lsa1->rt - lsa2->rt;
 
     if (lsa1->type != lsa2->type)
       return lsa1->type - lsa2->type;
-  
+
     if (lsa1->id != lsa2->id)
       return lsa1->id - lsa2->id;
 
@@ -1012,7 +1073,7 @@ lsa_compare_for_state(const void *p1, const void *p2)
     if (px1 != px2)
       return px1 - px2;
 #endif
-  
+
     return lsa1->sn - lsa2->sn;
   }
 }
@@ -1030,7 +1091,7 @@ ext_compare_for_state(const void *p1, const void *p2)
 
   if (lsa1->id != lsa2->id)
     return lsa1->id - lsa2->id;
- 
+
   return lsa1->sn - lsa2->sn;
 }
 
@@ -1079,7 +1140,7 @@ show_lsa_router(struct proto_ospf *po, struct top_hash_entry *he, int first, int
 	struct ospf_lsa_header *net_lsa = &(net_he->lsa);
 	struct ospf_lsa_net *net_ln = net_he->lsa_body;
 
-	cli_msg(-1016, "\t\tnetwork %I/%d metric %u", 
+	cli_msg(-1016, "\t\tnetwork %I/%d metric %u",
 		ipa_and(ipa_from_u32(net_lsa->id), net_ln->netmask),
 		ipa_mklen(net_ln->netmask), rr[i].metric);
       }
@@ -1155,7 +1216,7 @@ show_lsa_sum_rt(struct top_hash_entry *he)
   // options = 0;
 #else /* OSPFv3 */
   struct ospf_lsa_sum_rt *ls = he->lsa_body;
-  dst_rid = ls->drid; 
+  dst_rid = ls->drid;
   // options = ls->options & OPTIONS_MASK;
 #endif
 
@@ -1193,7 +1254,7 @@ show_lsa_external(struct top_hash_entry *he)
   rt_fwaddr_valid = ext->metric & LSA_EXT_FBIT;
   if (rt_fwaddr_valid)
     buf = lsa_get_ipv6_addr(buf, &rt_fwaddr);
-  else 
+  else
     rt_fwaddr = IPA_NONE;
 
   if (ext->metric & LSA_EXT_TBIT)
@@ -1201,7 +1262,7 @@ show_lsa_external(struct top_hash_entry *he)
   else
     rt_tag = 0;
 #endif
-  
+
   if (rt_fwaddr_valid)
     bsprintf(str_via, " via %I", rt_fwaddr);
 
@@ -1264,7 +1325,7 @@ ospf_sh_state(struct proto *p, int verbose, int reachable)
     return;
   }
 
-  /* We store interesting area-scoped LSAs in array hea and 
+  /* We store interesting area-scoped LSAs in array hea and
      global-scoped (LSA_T_EXT) LSAs in array hex */
 
   struct top_hash_entry *hea[num];
@@ -1462,7 +1523,7 @@ lsa_compare_for_lsadb(const void *p1, const void *p2)
 
   if (lsa1->rt != lsa2->rt)
     return lsa1->rt - lsa2->rt;
-  
+
   if (lsa1->id != lsa2->id)
     return lsa1->id - lsa2->id;
 
@@ -1524,7 +1585,7 @@ ospf_sh_lsadb(struct lsadb_show_data *ld)
 
     if (ld->router && (lsa->rt != ld->router))
       continue;
-    
+
     if ((dscope != last_dscope) || (hea[i]->domain != last_domain))
     {
       cli_msg(-1017, "");
@@ -1557,6 +1618,73 @@ ospf_sh_lsadb(struct lsadb_show_data *ld)
 	    lsa->type, lsa->id, lsa->rt, lsa->age, lsa->sn, lsa->checksum);
   }
   cli_msg(0, "");
+}
+
+void
+ospf_sh_usp(struct proto *p)
+{
+#ifdef OSPFv3
+  struct proto_ospf *po = (struct proto_ospf *) p;
+  struct prefix_node *pxn;
+
+  if (p->proto_state != PS_UP)
+  {
+    cli_msg(-1020, "%s: is not up", p->name);
+    cli_msg(0, "");
+    return;
+  }
+  cli_msg(-1020, "Usable Prefixes to be advertised (may not yet be in LSADB)");
+  cli_msg(-1020, "%-20s%-39s%-15s", "Type", "Prefix", "Prefix Length");
+  WALK_LIST(pxn, po->usp_list)
+  {
+    switch(pxn->type)
+    {
+    case OSPF_USP_T_MANUAL:
+      cli_msg(-1020, "%-20s%-39I/%-14d", "Manual", pxn->px.addr, pxn->px.len);
+      break;
+    case OSPF_USP_T_DHCPV6:
+      cli_msg(-1020, "%-20s%-39I/%-14d", "DHCPv6", pxn->px.addr, pxn->px.len);
+      break;
+    default:
+      break;
+    }
+  }
+  cli_msg(-1020, "");
+
+#if 0
+
+  WALK_LIST(oa, po->area_list)
+  {
+    cli_msg(-1020, "All Usable Prefixes in reachable LSADB for area %R", oa->areaid);
+    cli_msg(-1020, "%-20s%-39s%-15s", "Advertising Router", "Prefix", "Prefix Length");
+
+    PARSE_LSA_AC_USP_START(usp,en)
+    {
+      ip_addr addr;
+      unsigned int len;
+      u8 pxopts;
+      u16 rest;
+
+      lsa_get_ipv6_prefix((u32 *)usp, &addr, &len, &pxopts, &rest);
+      cli_msg(-1020, "%-20R%-1I/%-14d", en->lsa.rt, addr, len);
+    }
+    PARSE_LSA_AC_USP_END(en);
+  }
+#endif /* 0 */
+
+  /* for debugging purposes: show our own usp_list */
+  /*WALK_LIST(n,po->usp_list)
+  {
+    cli_msg(-1020, "%-1I/%-12d", n->px.addr, n->px.len);
+  }*/
+
+  cli_msg(0, "");
+  return;
+#else /* OSPFv2 */
+  cli_msg(-1020, "Command only available for OSPFv3");
+  cli_msg(0, "");
+  return;
+#endif
 }
 
 

@@ -6,8 +6,8 @@
  *
  *
  * Created:       Wed Aug  1 14:26:19 2012 mstenber
- * Last modified: Mon Aug 27 16:02:07 2012 mstenber
- * Edit time:     402 min
+ * Last modified: Mon Aug 27 18:29:41 2012 mstenber
+ * Edit time:     407 min
  *
  */
 
@@ -593,20 +593,29 @@ pxassign(elsa e)
   elsa_ap ap, nap;
   elsa_if i;
   elsa_lsa lsa;
+  int decremented = 0;
 
   /* Mark all assignments as invalid */
   list_for_each_entry(ap, &e->aps, list)
     {
       if (ap->valid)
-        ap->valid--;
+        {
+          ap->valid--;
+          decremented++;
+        }
     }
+  if (decremented)
+    ELSA_DEBUG("decremented validity of %d assigned prefixes", decremented);
 
   /* Iterate through the (if,usp) pairs */
   LOOP_ELSA_IF(e, i)
     {
+      ELSA_DEBUG("considering interface %s",
+                 elsai_if_get_name(e->client, i));
       LOOP_ELSA_AC_LSA(e, lsa)
         LOOP_AC_LSA_USP_START(lsa, usp)
         {
+          ELSA_DEBUG(" considering usp %p", usp);
           pxassign_if_usp(e, i, usp);
         } LOOP_END;
     }
@@ -812,13 +821,17 @@ void elsa_ac_uninit(elsa e)
 
 void elsa_ac(elsa e)
 {
+  ELSA_DEBUG("running prefix assignment");
+
   /* Run prefix assignment. */
   pxassign(e);
 
   /* Originate LSA if necessary. */
   if (e->need_originate_ac)
     {
+      ELSA_DEBUG("originating new ac lsa");
       originate_ac_lsa(e);
       e->need_originate_ac = false;
     }
+  ELSA_DEBUG("done");
 }

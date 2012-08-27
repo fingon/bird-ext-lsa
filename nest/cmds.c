@@ -22,6 +22,8 @@ cmd_show_status(void)
   cli_msg(-1000, "BIRD " BIRD_VERSION);
   tm_format_datetime(tim, &config->tf_base, now);
   cli_msg(-1011, "Router ID is %R", config->router_id);
+  if(config->rid_is_random)
+    cli_msg(-1011, "Router ID was randomly generated");
   cli_msg(-1011, "Current server time is %s", tim);
   tm_format_datetime(tim, &config->tf_base, boot_time);
   cli_msg(-1011, "Last reboot on %s", tim);

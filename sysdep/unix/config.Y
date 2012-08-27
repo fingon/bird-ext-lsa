@@ -15,9 +15,10 @@ CF_DECLS
 
 CF_KEYWORDS(LOG, SYSLOG, ALL, DEBUG, TRACE, INFO, REMOTE, WARNING, ERROR, AUTH, FATAL, BUG, STDERR, SOFT)
 CF_KEYWORDS(TIMEFORMAT, ISO, SHORT, LONG, BASE, NAME)
+CF_KEYWORDS(REMEMBER)
 
 %type <i> log_mask log_mask_list log_cat
-%type <g> log_file
+%type <g> log_file 
 %type <t> cfg_name
 %type <tf> timeformat_which
 %type <t> syslog_name
@@ -71,6 +72,13 @@ log_cat:
  | BUG { $$ = L_BUG[0]; }
  ;
 
+CF_ADDTO(conf, remember_rid)
+
+remember_rid: ROUTER ID REMEMBER TEXT ';'
+ {
+  new_config->rid_filename = $4;
+ }
+;
 
 CF_ADDTO(conf, mrtdump_base)
 
