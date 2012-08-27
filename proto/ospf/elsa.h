@@ -4,8 +4,8 @@
  * Author: Markus Stenberg <fingon@iki.fi>
  *
  * Created:       Wed Aug  1 13:31:21 2012 mstenber
- * Last modified: Mon Aug 27 14:30:47 2012 mstenber
- * Edit time:     54 min
+ * Last modified: Mon Aug 27 16:00:20 2012 mstenber
+ * Edit time:     55 min
  *
  */
 
@@ -135,5 +135,5 @@ elsa_ac_usp elsai_ac_usp_get_next(elsa_client client, elsa_ac_usp usp);
 /* Get the prefix's contents. The result_size is the size of result in bits,
  * and result pointer itself points at the prefix data. */
 void elsai_ac_usp_get_prefix(elsa_client client, elsa_ac_usp usp,
-                             void **result, int *result_size);
+                             void **result, int *result_size_bits);
 #endif /* ELSA_H */

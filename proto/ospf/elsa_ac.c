@@ -6,8 +6,8 @@
  *
  *
  * Created:       Wed Aug  1 14:26:19 2012 mstenber
- * Last modified: Mon Aug 27 12:09:43 2012 mstenber
- * Edit time:     378 min
+ * Last modified: Mon Aug 27 16:02:07 2012 mstenber
+ * Edit time:     402 min
  *
  */
 
@@ -678,18 +678,27 @@ add_usp_tlvs(elsa e)
 {
   struct ospf_lsa_ac_tlv_header *usp;
   struct elsa_prefix_struct px;
-  struct ospf_lsa_ac_tlv_v_usp *usp2;
-  elsa_lsa lsa;
 
-  // Add all prefixes from usable prefix list
-  LOOP_ELSA_AC_LSA(e, lsa)
-    LOOP_AC_LSA_USP_START(lsa, usp2)
+  elsa_ac_usp u;
+  void *data;
+  int data_bits;
+
+  for (u = elsai_ac_usp_get(e->client);
+       u;
+       u = elsai_ac_usp_get_next(e->client, u))
     {
-      usp_extract_elsa_prefix(usp2, &px);
+      memset(&px, 0, sizeof(px));
+
+      elsai_ac_usp_get_prefix(e->client, u, &data, &data_bits);
+      assert(data_bits % 8 == 0);
+      assert(data_bits >= 0 && data_bits <= 128);
+      px.len = data_bits;
+      memcpy(px.addr, data, data_bits / 8);
+
       usp = lsab_alloc(e, sizeof(struct ospf_lsa_ac_tlv_header));
       lsab_set_tlv(usp, LSA_AC_TLV_T_USP, IPV6_PREFIX_SPACE_NOPAD(px.len));
       lsab_put_prefix(e, &px);
-    } LOOP_END;
+    }
 }
 
 /**

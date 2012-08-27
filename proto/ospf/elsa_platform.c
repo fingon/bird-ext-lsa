@@ -4,8 +4,8 @@
  * Author: Markus Stenberg <fingon@iki.fi>
  *
  * Created:       Wed Aug  1 14:14:38 2012 mstenber
- * Last modified: Mon Aug 27 12:16:41 2012 mstenber
- * Edit time:     32 min
+ * Last modified: Mon Aug 27 16:03:14 2012 mstenber
+ * Edit time:     36 min
  *
  */
 
@@ -182,10 +182,35 @@ void elsai_lsa_originate(elsa_client client,
   (void)lsa_install_new(client, &lsa, dom, body);
 
   /* If the AC really _did_ change, ELSA got the notification and set
-   * it's need_ac.. We don't care about own LSA state though, except
-   * to know when to flood the new LSA onward here. */
+   * it's need_ac.. As this may have led to USP available changing, we
+   * may need to run the AC algorithm again. Regardless, we flood
+   * first what we have. */
   if (client->elsa->need_ac)
     ospf_lsupd_flood(client, NULL, NULL, &lsa, dom, 1);
+  else
+    client->elsa->need_ac = need_ac_save;
+}
 
-  client->elsa->need_ac = need_ac_save;
+/*************************************************** Configured USP handling */
+
+elsa_ac_usp elsai_ac_usp_get(elsa_client client)
+{
+  /* XXX */
+  return NULL;
+}
+
+/* Get next available usable prefix */
+elsa_ac_usp elsai_ac_usp_get_next(elsa_client client, elsa_ac_usp usp)
+{
+  /* XXX */
+  return NULL;
+}
+
+/* Get the prefix's contents. The result_size is the size of result in bits,
+ * and result pointer itself points at the prefix data. */
+void elsai_ac_usp_get_prefix(elsa_client client, elsa_ac_usp usp,
+                             void **result, int *result_size_bits)
+{
+  *result = NULL;
+  *result_size_bits = 0;
 }
