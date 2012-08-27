@@ -5,8 +5,8 @@
  *         Markus Stenberg <fingon@iki.fi>
  *
  * Created:       Wed Aug  1 19:06:06 2012 mstenber
- * Last modified: Thu Aug  2 15:57:29 2012 mstenber
- * Edit time:     30 min
+ * Last modified: Mon Aug 27 12:19:02 2012 mstenber
+ * Edit time:     33 min
  *
  */
 
@@ -75,7 +75,7 @@ struct ospf_lsa_ac_tlv_v_ifap /* One Interface Prefixes */
   u8 pa_priority;
   u8 reserved8_1;
   u8 reserved8_2;
-  u8 pa_pxlen; // must be PA_PXLEN_D or PA_PXLEN_SUB
+  u8 pa_pxlen;
   u32 rest[]; // Assigned Prefix TLVs
 };
 
@@ -117,6 +117,7 @@ do {                                                            \
     sizeof(struct ospf_lsa_ac_tlv_header)                       \
     + ntohs(ifap->header.length) -                              \
     offsetof(struct ospf_lsa_ac_tlv_v_ifap, rest);              \
+                                                                \
   while ((tlv = find_next_tlv(ifap->rest,                       \
                               size,                             \
                               &offset, LSA_AC_TLV_T_ASP,        \
@@ -131,6 +132,7 @@ do {                                                                    \
   u16 tlv_size;                                                         \
   unsigned char *body;                                                  \
   size_t size;                                                          \
+                                                                        \
   elsai_lsa_get_body(lsa, &body, &size);                                \
   while ((tlv = find_next_tlv(body, size, &offset, LSA_AC_TLV_T_USP,    \
                               NULL, &tlv_size)))                        \

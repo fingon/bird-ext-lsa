@@ -4,8 +4,8 @@
  * Author: Markus Stenberg <fingon@iki.fi>
  *
  * Created:       Wed Aug  1 13:31:21 2012 mstenber
- * Last modified: Thu Aug  2 16:27:21 2012 mstenber
- * Edit time:     44 min
+ * Last modified: Mon Aug 27 14:30:47 2012 mstenber
+ * Edit time:     54 min
  *
  */
 
@@ -23,7 +23,8 @@
  *
  * elsa_* calls are called by the client application.
  *
- * elsai_* calls are called by ELSA code which wants to do something.
+ * elsai_* calls are called by ELSA code which wants the platform code
+ * to do something.
  *
  * General design criteria is that the data in network format should
  * be usable directly; what that means, is that whatever we use _has_
@@ -40,6 +41,7 @@
    typedef .. my stuff *elsa_client;
    typedef .. *elsa_lsa;
    typedef .. *elsa_if;
+   typedef .. *elsa_ac_usp;
    ( typesafety is mandatory).
  */
 
@@ -81,19 +83,6 @@ uint32_t elsai_get_rid(elsa_client client);
 /* (Try to) change the router ID of the router. */
 void elsai_change_rid(elsa_client client);
 
-/* Get first LSA by type. */
-elsa_lsa elsai_get_lsa_by_type(elsa_client client, elsa_lsatype lsatype);
-
-/* Get next LSA by type. */
-elsa_lsa elsai_get_lsa_by_type_next(elsa_client client, elsa_lsa lsa);
-
-/* Get interface */
-elsa_if elsai_if_get(elsa_client client);
-
-/* Get next interface */
-elsa_if elsai_if_get_next(elsa_client client, elsa_if ifp);
-
-
 /**************************************************** LSA handling interface */
 
 /* Originate LSA.
@@ -107,6 +96,12 @@ void elsai_lsa_originate(elsa_client client,
                          uint32_t sn,
                          void *body, size_t body_len);
 
+/* Get first LSA by type. */
+elsa_lsa elsai_get_lsa_by_type(elsa_client client, elsa_lsatype lsatype);
+
+/* Get next LSA by type. */
+elsa_lsa elsai_get_lsa_by_type_next(elsa_client client, elsa_lsa lsa);
+
 /* Getters */
 elsa_lsatype elsai_lsa_get_type(elsa_lsa lsa);
 uint32_t elsai_lsa_get_rid(elsa_lsa lsa);
@@ -116,9 +111,29 @@ void elsai_lsa_get_elsa_data(elsa_lsa lsa, unsigned char **data, size_t *data_le
 
 /******************************************************** Interface handling */
 
+/* Get interface */
+elsa_if elsai_if_get(elsa_client client);
+
+/* Get next interface */
+elsa_if elsai_if_get_next(elsa_client client, elsa_if ifp);
+
+/* Assorted getters */
+
 const char * elsai_if_get_name(elsa_client client, elsa_if i);
 uint32_t elsai_if_get_index(elsa_client client, elsa_if i);
 uint32_t elsai_if_get_neigh_iface_id(elsa_client client, elsa_if i, uint32_t rid);
 uint8_t elsai_if_get_priority(elsa_client client, elsa_if i);
 
+/************************************************ Configured AC USP handling */
+
+/* Get first available usable prefix */
+elsa_ac_usp elsai_ac_usp_get(elsa_client client);
+
+/* Get next available usable prefix */
+elsa_ac_usp elsai_ac_usp_get_next(elsa_client client, elsa_ac_usp usp);
+
+/* Get the prefix's contents. The result_size is the size of result in bits,
+ * and result pointer itself points at the prefix data. */
+void elsai_ac_usp_get_prefix(elsa_client client, elsa_ac_usp usp,
+                             void **result, int *result_size);
 #endif /* ELSA_H */

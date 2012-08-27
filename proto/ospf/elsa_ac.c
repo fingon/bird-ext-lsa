@@ -6,8 +6,8 @@
  *
  *
  * Created:       Wed Aug  1 14:26:19 2012 mstenber
- * Last modified: Thu Aug  2 16:27:48 2012 mstenber
- * Edit time:     372 min
+ * Last modified: Mon Aug 27 12:09:43 2012 mstenber
+ * Edit time:     378 min
  *
  */
 
@@ -290,28 +290,27 @@ static bool
 choose_prefix(elsa e, elsa_if ei, elsa_prefix pxu, elsa_prefix px)
 {
   /* (Stupid) Algorithm:
+
      - try a random prefix until success or 10 attempts have passed
-     - if failure, do:
-       * set looped to 0
-       * store prefix in start_prefix
-       * while looped is 0 or prefix is strictly smaller than start_prefix, do:
-         * if prefix is not in usable prefix range, set to
-           lowest prefix of range and set looped to 1
-         * if prefix is available, return
-         * find one of the used prefixes which contains/is contained in this prefix then
-           increment prefix to the first prefix of correct length that
-           is not covered by that used prefix / does not cover that used prefix */
+
+     - if failure, iterate through the whole usable prefix pxu,
+     starting from random position, looking for a prefix that is
+     available.
+  */
   struct elsa_prefix_struct start_prefix;
   u32 my_rid = elsai_get_rid(e->client);
   int i;
 
-  for(i=0;i<10;i++)
-  {
-    random_prefix(pxu, px, my_rid, elsai_if_get_name(e->client, ei), i);
-    if(!in_use(e, px))
-      return true;
-  }
+  for (i=0; i<10; i++)
+    {
+      random_prefix(pxu, px, my_rid, elsai_if_get_name(e->client, ei), i);
+      if (!in_use(e, px))
+        return true;
+    }
   start_prefix = *px;
+
+  /* If this precondition is not true, we may wind up in a infinite loop. */
+  assert(net_in_net(px, pxu));
   do
     {
       if (!in_use(e, px))
@@ -319,13 +318,14 @@ choose_prefix(elsa e, elsa_if ei, elsa_prefix pxu, elsa_prefix px)
           return true;
         }
       u8 *c = (u8 *)&px->addr;
-      for (i = 64/8-1 ; i >= 0 ; i++)
+      for (i = 64/8-1 ; i >= 0 ; i--)
         {
           /* If we roll over to zero, we continue iteration. */
           if (++c[i])
             break;
         }
-      /* XXX - how to increment the IP address by one? */
+      /* If we've rolled outside the assigned prefix region, restart
+       * at the start. */
       if (!net_in_net(px, pxu))
         {
           memcpy(px->addr, pxu->addr, 16);
@@ -660,6 +660,7 @@ add_rhwf_tlv(elsa po)
   struct ospf_lsa_ac_tlv_header *rhwf;
   char *buf = "1234567890123456789012345678901234567890";
   int len = strlen(buf);
+
   /* XXX - get real print from somewhere */
   rhwf = lsab_alloc(po, sizeof(struct ospf_lsa_ac_tlv_header) + len);
   lsab_set_tlv(rhwf, LSA_AC_TLV_T_RHWF, len);
@@ -747,7 +748,7 @@ add_ifap_tlvs(elsa e)
 
       add_asp_tlvs(e, i);
       lsab_set_tlv((struct ospf_lsa_ac_tlv_header *)ifap,
-                   LSA_AC_TLV_T_IFAP, 
+                   LSA_AC_TLV_T_IFAP,
                    e->tail - pos - sizeof(struct ospf_lsa_ac_tlv_header));
     }
 }

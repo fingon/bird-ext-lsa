@@ -4,8 +4,8 @@
  * Author: Markus Stenberg <fingon@iki.fi>
  *
  * Created:       Wed Aug  1 14:14:38 2012 mstenber
- * Last modified: Thu Aug  2 16:34:54 2012 mstenber
- * Edit time:     28 min
+ * Last modified: Mon Aug 27 12:16:41 2012 mstenber
+ * Edit time:     32 min
  *
  */
 
@@ -166,6 +166,7 @@ void elsai_lsa_originate(elsa_client client,
                          void *body, size_t body_len)
 {
   struct ospf_lsa_header lsa;
+  bool need_ac_save;
 
   lsa.age = 0;
   lsa.type = ntohs(lsatype);
@@ -175,8 +176,16 @@ void elsai_lsa_originate(elsa_client client,
   u32 dom = 0;
   lsa.length = body_len + sizeof(struct ospf_lsa_header);
   lsasum_calculate(&lsa, body);
+
+  need_ac_save = client->elsa->need_ac;
+  client->elsa->need_ac = false;
   (void)lsa_install_new(client, &lsa, dom, body);
-  /* XXX - if this isn't new, shouldn't we avoid flooding? This needs
-   * some thought. Also some potential for looping here, perhaps. */
-  ospf_lsupd_flood(client, NULL, NULL, &lsa, dom, 1);
+
+  /* If the AC really _did_ change, ELSA got the notification and set
+   * it's need_ac.. We don't care about own LSA state though, except
+   * to know when to flood the new LSA onward here. */
+  if (client->elsa->need_ac)
+    ospf_lsupd_flood(client, NULL, NULL, &lsa, dom, 1);
+
+  client->elsa->need_ac = need_ac_save;
 }
