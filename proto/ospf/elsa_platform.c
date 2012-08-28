@@ -4,8 +4,8 @@
  * Author: Markus Stenberg <fingon@iki.fi>
  *
  * Created:       Wed Aug  1 14:14:38 2012 mstenber
- * Last modified: Mon Aug 27 18:13:54 2012 mstenber
- * Edit time:     42 min
+ * Last modified: Tue Aug 28 14:47:47 2012 mstenber
+ * Edit time:     46 min
  *
  */
 
@@ -14,6 +14,8 @@
 #include "elsa_internal.h"
 
 #include <assert.h>
+
+#include "lib/md5.h"
 
 /********************************************************** Memory handling  */
 
@@ -222,3 +224,20 @@ int elsai_get_log_level(void)
   return ELSA_DEBUG_LEVEL_DEBUG;
 }
 
+
+elsa_md5 elsai_md5_init(elsa_client client)
+{
+  elsa_md5 ctx;
+  ctx = elsai_calloc(client, sizeof(*ctx));
+  return ctx;
+}
+
+void elsai_md5_update(elsa_md5 md5, const unsigned char *data, int data_len)
+{
+  MD5Update(md5, data, data_len);
+}
+
+void elsai_md5_final(elsa_md5 md5, void *result)
+{
+  MD5Final(result, md5);
+}

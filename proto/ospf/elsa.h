@@ -4,8 +4,8 @@
  * Author: Markus Stenberg <fingon@iki.fi>
  *
  * Created:       Wed Aug  1 13:31:21 2012 mstenber
- * Last modified: Mon Aug 27 18:14:57 2012 mstenber
- * Edit time:     63 min
+ * Last modified: Tue Aug 28 15:43:58 2012 mstenber
+ * Edit time:     75 min
  *
  */
 
@@ -27,10 +27,10 @@
  * to do something.
  *
  * General design criteria is that the data in network format should
- * be usable directly; what that means, is that whatever we use _has_
- * to be in network order (e.g. big endian), and therefore conversions
- * should be done in the platform functionality. Also, the LSA data is
- * assumed to be big endian.
+ * be usable directly; however, individual VALUES we move across
+ * should be in host order.
+ * - LSA payload is in network order
+ * - individual LSA fields (e.g.) that are passed through API are in host order
  */
 
 /* Whoever includes this file should provide the appropriate
@@ -107,7 +107,6 @@ elsa_lsatype elsai_lsa_get_type(elsa_lsa lsa);
 uint32_t elsai_lsa_get_rid(elsa_lsa lsa);
 uint32_t elsai_lsa_get_lsid(elsa_lsa lsa);
 void elsai_lsa_get_body(elsa_lsa lsa, unsigned char **body, size_t *body_len);
-void elsai_lsa_get_elsa_data(elsa_lsa lsa, unsigned char **data, size_t *data_len);
 
 /******************************************************** Interface handling */
 
@@ -121,7 +120,7 @@ elsa_if elsai_if_get_next(elsa_client client, elsa_if ifp);
 
 const char * elsai_if_get_name(elsa_client client, elsa_if i);
 uint32_t elsai_if_get_index(elsa_client client, elsa_if i);
-uint32_t elsai_if_get_neigh_iface_id(elsa_client client, elsa_if i, uint32_t rid);
+/* uint32_t elsai_if_get_neigh_iface_id(elsa_client client, elsa_if i, uint32_t rid); */
 uint8_t elsai_if_get_priority(elsa_client client, elsa_if i);
 
 /************************************************ Configured AC USP handling */
@@ -158,5 +157,10 @@ do {                                            \
 #define ELSA_INFO(fmt...) ELSA_LOG(ELSA_DEBUG_LEVEL_INFO, ##fmt)
 #define ELSA_DEBUG(fmt...) ELSA_LOG(ELSA_DEBUG_LEVEL_DEBUG, ##fmt)
 
+/************************************************************ 'Other stuff'  */
+
+elsa_md5 elsai_md5_init(elsa_client client);
+void elsai_md5_update(elsa_md5 md5, const unsigned char *data, int data_len);
+void elsai_md5_final(elsa_md5 md5, void *result);
 
 #endif /* ELSA_H */

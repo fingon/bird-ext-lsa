@@ -6,8 +6,8 @@
  *
  *
  * Created:       Wed Aug  1 14:26:19 2012 mstenber
- * Last modified: Mon Aug 27 18:29:41 2012 mstenber
- * Edit time:     407 min
+ * Last modified: Tue Aug 28 17:16:15 2012 mstenber
+ * Edit time:     441 min
  *
  */
 
@@ -30,9 +30,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* FIXME - remove the direct md5 dependency */
-#include "lib/md5.h"
-
 /* XXX - put some of this stuff in a platform dependent file. */
 static bool
 platform_handle_prefix(elsa_ap n, bool add)
@@ -52,6 +49,7 @@ platform_handle_prefix(elsa_ap n, bool add)
            n->my_rid >> 16,
            n->my_rid & 0xFFFF,
            n->px.len, n->ifname);
+  ELSA_DEBUG("running %s", cmd);
   return system(cmd);
 }
 
@@ -75,14 +73,12 @@ configure_add_prefix(elsa e,
   ap->pa_priority = pa_priority;
   ap->valid = 1;
   strncpy(ap->ifname, elsai_if_get_name(e->client, i), ELSA_IFNAME_LEN);
-#if 0
-  /* XXX - This should be done later */
   if (!platform_handle_prefix(ap, true))
     {
+      ELSA_ERROR("unable to set up prefix - bailing");
       elsai_free(e->client, ap);
       return false;
     }
-#endif /* 0 */
   /* Mark that we need to originate new AC LSA at some point */
   e->need_originate_ac = true;
 
@@ -211,17 +207,19 @@ assignment_find(elsa e, elsa_if i, elsa_prefix usp)
  * @i: Number of the iteration-
  */
 static void
-random_prefix(elsa_prefix px, elsa_prefix pxsub, u32 rid, const char *ifname, int i)
+random_prefix(elsa e, elsa_prefix px, elsa_prefix pxsub, u32 rid,
+              const char *ifname, int i)
 {
-  struct MD5Context ctxt;
+  elsa_md5 md5;
   char md5sum[16];
   int st;
 
-  MD5Init(&ctxt);
-  MD5Update(&ctxt, ifname, strlen(ifname));
-  MD5Update(&ctxt, (char *)&rid, sizeof(rid));
-  MD5Update(&ctxt, (char *)&i, sizeof(i));
-  MD5Final(md5sum, &ctxt);
+  md5 = elsai_md5_init(e->client);
+  assert(md5);
+  elsai_md5_update(md5, ifname, strlen(ifname));
+  elsai_md5_update(md5, (char *)&rid, sizeof(rid));
+  elsai_md5_update(md5, (char *)&i, sizeof(i));
+  elsai_md5_final(md5, md5sum);
 
   memcpy(&pxsub->addr, md5sum, 16);
 
@@ -303,7 +301,7 @@ choose_prefix(elsa e, elsa_if ei, elsa_prefix pxu, elsa_prefix px)
 
   for (i=0; i<10; i++)
     {
-      random_prefix(pxu, px, my_rid, elsai_if_get_name(e->client, ei), i);
+      random_prefix(e, pxu, px, my_rid, elsai_if_get_name(e->client, ei), i);
       if (!in_use(e, px))
         return true;
     }
@@ -370,7 +368,7 @@ have_precedence_over_us(elsa e, elsa_if i,
   if (ifap->pa_priority > my_priority)
     return true;
   if (ifap->pa_priority == my_priority
-      && ntohl(other_rid) > ntohl(my_rid))
+      && other_rid > my_rid)
     return true;
   return false;
 }
@@ -473,8 +471,12 @@ pxassign_if_usp(elsa e, elsa_if i, struct ospf_lsa_ac_tlv_v_usp *cusp)
   LOOP_ELSA_AC_LSA(e, lsa)
     LOOP_AC_LSA_USP_START(lsa, usp2)
     {
-      if (net_in_net_raw(usp.addr, usp.len, usp2->prefix, usp2->pxlen))
-        return;
+      if (net_in_net_raw(usp.addr, usp.len, usp2->prefix, usp2->pxlen)
+          && usp.len != usp2->pxlen)
+        {
+          ELSA_DEBUG("prefix covered by other prefix");
+          return;
+        }
     } LOOP_END;
 
 
@@ -482,7 +484,7 @@ pxassign_if_usp(elsa e, elsa_if i, struct ospf_lsa_ac_tlv_v_usp *cusp)
 
   /* Let's see if we have assignment for that prefix on the link */
   current_ap = assignment_find(e, i, &usp);
-  bool we_assigned = current_ap->rid == my_rid;
+  bool we_assigned = current_ap && current_ap->rid == my_rid;
 
   /* Let's also see if we have priority, and if someone else has
    * assigned something on the link. We care only about the highest
@@ -504,7 +506,7 @@ pxassign_if_usp(elsa e, elsa_if i, struct ospf_lsa_ac_tlv_v_usp *cusp)
 
       LOOP_AC_LSA_IFAP_START(lsa, ifap)
         {
-          if (ifap->id == elsai_if_get_neigh_iface_id(e->client, i, other_rid))
+          /* if (ifap->id == elsai_if_get_neigh_iface_id(e->client, i, other_rid)) */
             {
               bool preferrable = have_precedence_over_us(e, i, lsa, ifap);
               if (preferrable)
@@ -594,6 +596,7 @@ pxassign(elsa e)
   elsa_if i;
   elsa_lsa lsa;
   int decremented = 0;
+  int deleted = 0;
 
   /* Mark all assignments as invalid */
   list_for_each_entry(ap, &e->aps, list)
@@ -624,8 +627,13 @@ pxassign(elsa e)
   list_for_each_entry_safe(ap, nap, &e->aps, list)
     {
       if(!ap->valid)
-        configure_del_prefix(e, ap);
+        {
+          configure_del_prefix(e, ap);
+          deleted++;
+        }
     }
+  if (deleted)
+    ELSA_DEBUG("deleted %d prefixes", deleted);
 }
 
 /* Wrappers s.t. we can use BIRD-like API .. laziness at work. */
@@ -644,6 +652,7 @@ static inline void *lsab_alloc(elsa e, int size)
 static inline void lsab_put_prefix(elsa e, elsa_prefix p)
 {
   uint8_t *buf = lsab_alloc(e, IPV6_PREFIX_SPACE(p->len));
+
   *buf++ = p->len;
   *buf++ = 0;
   *buf++ = 0;
@@ -655,6 +664,8 @@ static inline void lsab_set_tlv(struct ospf_lsa_ac_tlv_header *h,
                                 short type,
                                 short length)
 {
+  h->type = htons(type);
+  h->length = htons(length);
 }
 
 /**
@@ -667,7 +678,7 @@ static void
 add_rhwf_tlv(elsa po)
 {
   struct ospf_lsa_ac_tlv_header *rhwf;
-  char *buf = "1234567890123456789012345678901234567890";
+  char *buf = "12345678901234567890123456789012";
   int len = strlen(buf);
 
   /* XXX - get real print from somewhere */
@@ -793,10 +804,24 @@ void
 originate_ac_lsa(elsa e)
 {
   create_ac_lsa_body(e);
+  /* Output whole buffer as debug.. expensive, but possibly useful. */
+  if (elsai_get_log_level() >= ELSA_DEBUG_LEVEL_DEBUG)
+    {
+      int len = e->tail - e->buf;
+      char *buf = elsai_calloc(e->client, len * 2 + 1);
+      assert(buf);
+      int i;
+      for (i = 0 ; i < len ; i++)
+        {
+          sprintf(buf+2*i, "%02x", e->buf[i]);
+        }
+      ELSA_DEBUG("new LSA (of %d bytes): %s", len, buf);
+      elsai_free(e->client, buf);
+    }
   elsai_lsa_originate(e->client,
-                      htons(LSA_T_AC), /* type */
+                      LSA_T_AC, /* type */
                       0, /* id */
-                      htonl(++e->ac_sn),
+                      ++e->ac_sn,
                       e->buf,
                       e->tail - e->buf);
 }
@@ -829,9 +854,9 @@ void elsa_ac(elsa e)
   /* Originate LSA if necessary. */
   if (e->need_originate_ac)
     {
+      e->need_originate_ac = false;
       ELSA_DEBUG("originating new ac lsa");
       originate_ac_lsa(e);
-      e->need_originate_ac = false;
     }
   ELSA_DEBUG("done");
 }

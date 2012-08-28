@@ -4,8 +4,8 @@
  * Author: Markus Stenberg <fingon@iki.fi>
  *
  * Created:       Wed Aug  1 14:01:30 2012 mstenber
- * Last modified: Mon Aug 27 18:31:26 2012 mstenber
- * Edit time:     11 min
+ * Last modified: Tue Aug 28 15:48:34 2012 mstenber
+ * Edit time:     17 min
  *
  */
 
@@ -37,7 +37,14 @@ void elsa_lsa_changed(elsa e, elsa_lsatype lsatype)
 {
   assert(e);
   if (lsatype == LSA_T_AC)
-    e->need_ac = true;
+    {
+      ELSA_DEBUG("interesting LSA changed");
+      e->need_ac = true;
+    }
+  else
+    {
+      ELSA_DEBUG("boring LSA changed (%x not %x)", lsatype, LSA_T_AC);
+    }
 }
 
 void elsa_lsa_deleted(elsa e, elsa_lsatype lsatype)
@@ -55,7 +62,7 @@ void elsa_dispatch(elsa e)
 {
   if (e->need_ac)
     {
-      elsa_ac(e);
       e->need_ac = false;
+      elsa_ac(e);
     }
 }

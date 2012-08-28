@@ -4,7 +4,7 @@
  * Author: Markus Stenberg <fingon@iki.fi>
  *
  * Created:       Wed Aug  1 14:09:11 2012 mstenber
- * Last modified: Mon Aug 27 18:29:15 2012 mstenber
+ * Last modified: Tue Aug 28 14:41:56 2012 mstenber
  * Edit time:     15 min
  *
  */
@@ -29,6 +29,9 @@ typedef struct ospf_iface *elsa_if;
 
 /* Opaque USP blob. */
 typedef struct elsa_usp_struct *elsa_ac_usp;
+
+/* MD5 context (dynamically allocated) */
+typedef struct MD5Context *elsa_md5;
 
 struct elsa_lsa_struct {
   int hash_bin;
