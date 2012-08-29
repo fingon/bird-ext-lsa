@@ -6,8 +6,8 @@
  *
  *
  * Created:       Wed Aug  1 14:26:19 2012 mstenber
- * Last modified: Wed Aug 29 12:58:45 2012 mstenber
- * Edit time:     460 min
+ * Last modified: Wed Aug 29 13:42:49 2012 mstenber
+ * Edit time:     477 min
  *
  */
 
@@ -199,14 +199,12 @@ net_in_net(elsa_prefix p, elsa_prefix net)
 static elsa_ap
 assignment_find(elsa e, elsa_if i, elsa_prefix usp)
 {
-  u32 my_rid = elsai_get_rid(e->client);
   elsa_ap ap;
   const char *ifname = elsai_if_get_name(e->client, i);
 
   list_for_each_entry(ap, &e->aps, list)
     {
-      if(ap->rid == my_rid
-         && strcmp(ap->ifname, ifname) == 0
+      if(strcmp(ap->ifname, ifname) == 0
          && net_in_net(&ap->px, usp))
         {
           return ap;
@@ -519,6 +517,7 @@ pxassign_if_usp(elsa e, elsa_if i, struct ospf_lsa_ac_tlv_v_usp *cusp)
 
       LOOP_AC_LSA_IFAP_START(lsa, ifap)
         {
+          if (ntohl(ifap->id) == elsai_if_get_index(e->client, i))
           /* if (ifap->id == elsai_if_get_neigh_iface_id(e->client, i, other_rid)) */
             {
               bool preferrable = have_precedence_over_us(e, i, lsa, ifap);
@@ -560,7 +559,7 @@ pxassign_if_usp(elsa e, elsa_if i, struct ospf_lsa_ac_tlv_v_usp *cusp)
     {
       /* 6.3.4 */
       /* TODO - we're making a shortcut here, we don't check for
-       * conflciting other assignments on the link. Eventually this
+       * conflicting other assignments on the link. Eventually this
        * will result in consistent state anyway, though. */
       if (current_ap)
         {
@@ -787,7 +786,7 @@ add_ifap_tlvs(elsa e)
     {
       pos = e->tail;
       ifap = lsab_alloc(e, sizeof(struct ospf_lsa_ac_tlv_v_ifap));
-      ifap->id = elsai_if_get_index(e->client, i);
+      ifap->id = htonl(elsai_if_get_index(e->client, i));
       ifap->pa_priority = elsai_if_get_priority(e->client, i);
       ifap->reserved8_1 = 0;
       ifap->reserved8_2 = 0;

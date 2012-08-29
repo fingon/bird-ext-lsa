@@ -4,8 +4,8 @@
  * Author: Markus Stenberg <fingon@iki.fi>
  *
  * Created:       Tue Aug 28 12:10:30 2012 mstenber
- * Last modified: Wed Aug 29 13:14:01 2012 mstenber
- * Edit time:     121 min
+ * Last modified: Wed Aug 29 13:39:02 2012 mstenber
+ * Edit time:     131 min
  *
  */
 
@@ -130,7 +130,7 @@ void elsai_free(elsa_client client, void *ptr)
 uint32_t elsai_get_rid(elsa_client client)
 {
   assert(client == FAKE_CLIENT);
-  return 123;
+  return 0x11223344;
 }
 
 void elsai_change_rid(elsa_client client)
@@ -396,6 +396,52 @@ void test_other_origin()
   assert(rb_position != 0);
 }
 
+
+/* Test with someone else providing the USP+ASP. */
+void test_other_origin2()
+{
+  elsa e;
+  int i, j;
+
+  const char *base_usp =
+    "0001"
+    "0020"
+    "0000000011111111222222223333333344444444555555556666666677777777"
+    "0002"
+    "0008"
+    "2000000020016442"
+    "0004" "0018"
+     "0000002a0a000040"
+     "0003" "000c" "40000000" "200164428e8f0ff4";
+    ;
+
+  ELSA_DEBUG("!!! test_other_origin 2");
+  reset();
+  for (i = 0 ; i < 2 ; i++)
+    {
+      elsa_if eif = &rifs[i];
+      ifs[i] = eif;
+      eif->i = i;
+      sprintf(eif->name, "eth%d", i);
+      eif->index = 42 + i;
+    }
+  elsa_lsa lsa = &rlsas[0];
+  lsas[0] = lsa;
+  free_lsa++;
+  memset(lsa, 0, sizeof(*lsa));
+  lsa->body_len = hex2buf(base_usp, lsa->body, 1024);
+  lsa->type = LSA_T_AC;
+  lsa->rid = 0x22334455;
+  e = elsa_create(FAKE_CLIENT);
+  global_elsa = e;
+  elsa_lsa_changed(e, LSA_T_AC);
+  elsa_dispatch(e);
+  elsa_dispatch(e);
+  elsa_destroy(e);
+  assert(rb_position != 0);
+}
+
+
 #define DELEGATED_PREFIX_LENGTH 32
 
 /* Not quite so minimalist test case - provide USP => should allocate
@@ -496,5 +542,9 @@ int main(int argc, char **argv)
   test_nop();
   test_other_origin();
   test_own_origin();
+
+  /* Main point of this case: Should NOT result in more than one
+   * interface getting 2001:6442:8e8f:ff4 prefix! */
+  test_other_origin2();
   return 0;
 }
