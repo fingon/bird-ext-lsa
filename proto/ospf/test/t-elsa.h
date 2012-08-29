@@ -4,7 +4,7 @@
  * Author: Markus Stenberg <fingon@iki.fi>
  *
  * Created:       Tue Aug 28 12:27:21 2012 mstenber
- * Last modified: Tue Aug 28 14:49:59 2012 mstenber
+ * Last modified: Wed Aug 29 13:07:23 2012 mstenber
  * Edit time:     2 min
  *
  */
@@ -15,6 +15,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <openssl/md5.h>
 
 typedef uint32_t elsa_client;
 
@@ -27,7 +28,7 @@ typedef struct telsa_if_struct *elsa_if;
 /* Opaque USP blob. */
 typedef struct telsa_usp_struct *elsa_ac_usp;
 
-typedef char *elsa_md5;
+typedef MD5_CTX *elsa_md5;
 
 /* Provide fake platform API here */
 

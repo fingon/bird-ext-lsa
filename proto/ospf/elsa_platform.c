@@ -4,8 +4,8 @@
  * Author: Markus Stenberg <fingon@iki.fi>
  *
  * Created:       Wed Aug  1 14:14:38 2012 mstenber
- * Last modified: Tue Aug 28 14:47:47 2012 mstenber
- * Edit time:     46 min
+ * Last modified: Wed Aug 29 12:51:26 2012 mstenber
+ * Edit time:     60 min
  *
  */
 
@@ -45,7 +45,7 @@ uint32_t elsai_lsa_get_rid(elsa_lsa lsa)
   struct top_hash_entry *en = lsa->hash_entry;
 
   assert(en);
-  return htonl(en->lsa.rt);
+  return en->lsa.rt;
 }
 
 uint32_t elsai_lsa_get_lsid(elsa_lsa lsa)
@@ -53,7 +53,7 @@ uint32_t elsai_lsa_get_lsid(elsa_lsa lsa)
   struct top_hash_entry *en = lsa->hash_entry;
 
   assert(en);
-  return htonl(en->lsa.id);
+  return en->lsa.id;
 }
 
 void elsai_lsa_get_body(elsa_lsa lsa, unsigned char **body, size_t *body_len)
@@ -68,7 +68,9 @@ void elsai_lsa_get_body(elsa_lsa lsa, unsigned char **body, size_t *body_len)
   *body_len = len;
 }
 
-static elsa_lsa find_next_entry(elsa_client client, elsa_lsa lsa)
+static elsa_lsa find_next_entry(elsa_client client,
+                                elsa_lsa lsa,
+                                elsa_lsatype type)
 {
   int i;
   struct top_graph *gr = client->gr;
@@ -76,9 +78,17 @@ static elsa_lsa find_next_entry(elsa_client client, elsa_lsa lsa)
   for (i = lsa->hash_bin ; i < gr->hash_size ; i++)
     if ((e=gr->hash_table[i]))
       {
-        lsa->hash_entry = e;
-        lsa->hash_bin = i;
-        return lsa;
+        while (e)
+          {
+            if (e->lsa.type != type)
+              {
+                e = e->next;
+                continue;
+              }
+            lsa->hash_entry = e;
+            lsa->hash_bin = i;
+            return lsa;
+          }
       }
   return NULL;
 }
@@ -91,18 +101,23 @@ elsa_lsa elsai_get_lsa_by_type(elsa_client client, elsa_lsatype lsatype)
     &client->elsa->platform.lsa[idx];
   lsa->hash_bin = 0;
   lsa->hash_entry = NULL;
-  return find_next_entry(client, lsa);
+  return find_next_entry(client, lsa, lsatype);
 }
 
 elsa_lsa elsai_get_lsa_by_type_next(elsa_client client, elsa_lsa lsa)
 {
+  elsa_lsatype type;
+
   assert(lsa->hash_entry);
-  if (lsa->hash_entry->next)
+  type = lsa->hash_entry->lsa.type;
+  while (lsa->hash_entry->next)
     {
       lsa->hash_entry = lsa->hash_entry->next;
-      return lsa;
+      if (lsa->hash_entry->lsa.type == type)
+        return lsa;
     }
-  return find_next_entry(client, lsa);
+  lsa->hash_bin++;
+  return find_next_entry(client, lsa, type);
 }
 
 /*************************************************************** IF handling */
@@ -121,7 +136,7 @@ uint32_t elsai_if_get_index(elsa_client client, elsa_if i)
   if (!i->iface)
     return 0;
 
-  return htonl(i->iface->index);
+  return i->iface->index;
 }
 
 uint32_t elsai_if_get_neigh_iface_id(elsa_client client,
@@ -134,9 +149,9 @@ uint32_t elsai_if_get_neigh_iface_id(elsa_client client,
     {
       if (neigh->state >= NEIGHBOR_INIT)
         {
-          if (neigh->rid == ntohl(rid))
+          if (neigh->rid == rid)
             {
-              return htonl(neigh->iface_id);
+              return neigh->iface_id;
             }
         }
     }
@@ -169,7 +184,11 @@ void elsai_lsa_originate(elsa_client client,
 {
   struct ospf_lsa_header lsa;
   bool need_ac_save;
+  void *tmp;
 
+  tmp = mb_alloc(client->proto.pool, body_len);
+  if (!tmp)
+    return;
   lsa.age = 0;
   lsa.type = ntohs(lsatype);
   lsa.id = ntohl(lsid);
@@ -181,7 +200,8 @@ void elsai_lsa_originate(elsa_client client,
 
   need_ac_save = client->elsa->need_ac;
   client->elsa->need_ac = false;
-  (void)lsa_install_new(client, &lsa, dom, body);
+  memcpy(tmp, body, body_len);
+  (void)lsa_install_new(client, &lsa, dom, tmp);
 
   /* If the AC really _did_ change, ELSA got the notification and set
    * it's need_ac.. As this may have led to USP available changing, we

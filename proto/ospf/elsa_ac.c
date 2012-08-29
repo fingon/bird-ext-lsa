@@ -6,8 +6,8 @@
  *
  *
  * Created:       Wed Aug  1 14:26:19 2012 mstenber
- * Last modified: Tue Aug 28 17:16:15 2012 mstenber
- * Edit time:     441 min
+ * Last modified: Wed Aug 29 12:58:45 2012 mstenber
+ * Edit time:     460 min
  *
  */
 
@@ -29,6 +29,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 /* XXX - put some of this stuff in a platform dependent file. */
 static bool
@@ -50,7 +51,11 @@ platform_handle_prefix(elsa_ap n, bool add)
            n->my_rid & 0xFFFF,
            n->px.len, n->ifname);
   ELSA_DEBUG("running %s", cmd);
+#ifndef ELSA_UNITTEST_AC_NO_EXEC
   return system(cmd);
+#else
+  return 0;
+#endif /* !ELSA_UNITTEST_AC_NO_EXEC */
 }
 
 static bool
@@ -62,6 +67,16 @@ configure_add_prefix(elsa e,
 {
   elsa_ap ap;
   u32 my_rid = elsai_get_rid(e->client);
+  const char *ifname;
+
+  /* Get the interface name */
+  ifname = elsai_if_get_name(e->client, i);
+  if (!ifname)
+    {
+      ELSA_ERROR("no interface name for interface %p when configuring prefix",
+                 i);
+      return false;
+    }
 
   /* Add the prefix to the interface */
   ap = elsai_calloc(e->client, sizeof(*ap));
@@ -72,8 +87,8 @@ configure_add_prefix(elsa e,
   ap->my_rid = my_rid;
   ap->pa_priority = pa_priority;
   ap->valid = 1;
-  strncpy(ap->ifname, elsai_if_get_name(e->client, i), ELSA_IFNAME_LEN);
-  if (!platform_handle_prefix(ap, true))
+  strncpy(ap->ifname, ifname, ELSA_IFNAME_LEN);
+  if (platform_handle_prefix(ap, true) != 0 && e->note_address_add_failures)
     {
       ELSA_ERROR("unable to set up prefix - bailing");
       elsai_free(e->client, ap);
@@ -221,13 +236,11 @@ random_prefix(elsa e, elsa_prefix px, elsa_prefix pxsub, u32 rid,
   elsai_md5_update(md5, (char *)&i, sizeof(i));
   elsai_md5_final(md5, md5sum);
 
-  memcpy(&pxsub->addr, md5sum, 16);
-
   /* FIXME - do correct bitmask operations */
   memcpy(&pxsub->addr, &px->addr, 16);
   st = px->len/16;
   memcpy(&pxsub->addr[st], md5sum, 16-2*st);
-  st=pxsub->len/16;
+  st = pxsub->len/16;
   memset(&pxsub->addr[st], 0, 16-2*st);
 }
 
@@ -329,7 +342,7 @@ choose_prefix(elsa e, elsa_if ei, elsa_prefix pxu, elsa_prefix px)
           memcpy(px->addr, pxu->addr, 16);
         }
     }
-  while (memcmp(&start_prefix, px, sizeof(*px)) != 0);
+  while (memcmp(&start_prefix.addr, &px->addr, 16) != 0);
   return false;
 
 }
@@ -613,8 +626,13 @@ pxassign(elsa e)
   /* Iterate through the (if,usp) pairs */
   LOOP_ELSA_IF(e, i)
     {
-      ELSA_DEBUG("considering interface %s",
-                 elsai_if_get_name(e->client, i));
+      const char *ifname = elsai_if_get_name(e->client, i);
+
+      if (!ifname || !isalnum(ifname[0]))
+        continue;
+
+      ELSA_DEBUG("considering interface %s", ifname);
+
       LOOP_ELSA_AC_LSA(e, lsa)
         LOOP_AC_LSA_USP_START(lsa, usp)
         {
@@ -846,7 +864,7 @@ void elsa_ac_uninit(elsa e)
 
 void elsa_ac(elsa e)
 {
-  ELSA_DEBUG("running prefix assignment");
+  ELSA_DEBUG("ac - performing prefix assignment");
 
   /* Run prefix assignment. */
   pxassign(e);
@@ -855,8 +873,8 @@ void elsa_ac(elsa e)
   if (e->need_originate_ac)
     {
       e->need_originate_ac = false;
-      ELSA_DEBUG("originating new ac lsa");
+      ELSA_DEBUG("ac - originating new ac lsa");
       originate_ac_lsa(e);
     }
-  ELSA_DEBUG("done");
+  ELSA_DEBUG("ac - done");
 }

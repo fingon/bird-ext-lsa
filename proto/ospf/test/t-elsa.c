@@ -4,8 +4,8 @@
  * Author: Markus Stenberg <fingon@iki.fi>
  *
  * Created:       Tue Aug 28 12:10:30 2012 mstenber
- * Last modified: Tue Aug 28 17:10:56 2012 mstenber
- * Edit time:     109 min
+ * Last modified: Wed Aug 29 13:14:01 2012 mstenber
+ * Edit time:     121 min
  *
  */
 
@@ -15,6 +15,8 @@
  * It is completely stand-alone, and implements the ELSA platform
  * API. To avoid elsa_platform.h,
  */
+
+#define ELSA_UNITTEST_AC_NO_EXEC
 
 #include <stdio.h>
 
@@ -292,30 +294,19 @@ int elsai_get_log_level(void)
 
 elsa_md5 elsai_md5_init(elsa_client client)
 {
-  elsa_md5 ctx = elsai_calloc(client, 1234);
-  ctx[0] = 0;
+  elsa_md5 ctx = elsai_calloc(client, sizeof(*ctx));
+  MD5_Init(ctx);
   return ctx;
 }
 
 void elsai_md5_update(elsa_md5 md5, const unsigned char *data, int data_len)
 {
-  int i;
-  for (i = 0 ; i < data_len ; i++)
-    {
-      char *c = md5 + strlen(md5);
-      sprintf(c, "%02x",data[i]);
-    }
+  MD5_Update(md5, data, data_len);
 }
 
 void elsai_md5_final(elsa_md5 md5, void *result)
 {
-  unsigned char *d = result;
-  int copied = 0;
-
-  memset(result, 0, 16);
-  char *c = md5 + strlen(md5) - 1;
-  while (c >= md5 && copied++ < 16)
-    *d++ = *c--;
+  MD5_Final(result, md5);
   free(md5);
 }
 
@@ -405,6 +396,8 @@ void test_other_origin()
   assert(rb_position != 0);
 }
 
+#define DELEGATED_PREFIX_LENGTH 32
+
 /* Not quite so minimalist test case - provide USP => should allocate
    something, produce TLV. */
 void test_own_origin()
@@ -419,7 +412,7 @@ void test_own_origin()
       elsa_if eif = &rifs[i];
       ifs[i] = eif;
       eif->i = i;
-      sprintf(eif->name, "eth%d", i);
+      sprintf(eif->name, "if%d", i);
       eif->index = 42 + i;
     }
   for (i = 0 ; i < 2 ; i++)
@@ -429,9 +422,9 @@ void test_own_origin()
 
       usp->i = i;
       /* Two usable prefixes */
-      for (j = 0 ; j < 48/8 ; j++)
+      for (j = 0 ; j < DELEGATED_PREFIX_LENGTH/8 ; j++)
         usp->prefix[j] = i + 1;
-      usp->prefix_bits = 48;
+      usp->prefix_bits = DELEGATED_PREFIX_LENGTH;
     }
   e = elsa_create(FAKE_CLIENT);
   global_elsa = e;

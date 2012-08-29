@@ -8,8 +8,8 @@
  *       All rights reserved
  *
  * Created:       Wed Aug  1 14:23:23 2012 mstenber
- * Last modified: Thu Aug  2 16:28:10 2012 mstenber
- * Edit time:     9 min
+ * Last modified: Wed Aug 29 12:54:53 2012 mstenber
+ * Edit time:     10 min
  *
  */
 
@@ -26,8 +26,12 @@
 
 struct elsa_struct {
   elsa_client client;
+
+  bool note_address_add_failures;
+
   bool need_ac;
   bool need_originate_ac;
+
   int ac_sn;
   struct list_head aps;
   struct elsa_platform_struct platform;
