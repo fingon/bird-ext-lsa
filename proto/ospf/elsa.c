@@ -4,16 +4,22 @@
  * Author: Markus Stenberg <fingon@iki.fi>
  *
  * Created:       Wed Aug  1 14:01:30 2012 mstenber
- * Last modified: Tue Aug 28 15:48:34 2012 mstenber
- * Edit time:     17 min
+ * Last modified: Wed Sep 26 23:22:00 2012 mstenber
+ * Edit time:     38 min
  *
  */
 
 #include "elsa_internal.h"
+#include "lauxlib.h"
+#include "lualib.h"
+
+extern int luaopen_elsa(lua_State* L);
 
 elsa elsa_create(elsa_client client)
 {
   elsa e;
+  int r;
+
   e = elsai_calloc(client, sizeof(*e));
   e->client = client;
   if (elsai_ac_usp_get(client))
@@ -21,6 +27,17 @@ elsa elsa_create(elsa_client client)
       e->need_ac = true;
       e->need_originate_ac = true;
     }
+  e->l = luaL_newstate();
+  luaL_openlibs(e->l);
+  luaopen_elsa(e->l);
+  if ((r = luaL_loadfile(e->l, "elsa.lua")) ||
+      (r = lua_pcall(e->l, 0, 0, 0))
+      )
+    {
+      ELSA_ERROR("error %d in lua init: %s", r, lua_tostring(e->l, -1));
+      lua_pop(e->l, 1);
+    }
+
   elsa_ac_init(e);
   ELSA_DEBUG("created elsa %p for client %p", e, client);
   return e;
@@ -28,6 +45,7 @@ elsa elsa_create(elsa_client client)
 
 void elsa_destroy(elsa e)
 {
+  lua_close(e->l);
   elsa_ac_uninit(e);
   elsai_free(e->client, e);
   ELSA_DEBUG("destroyed elsa %p", e);
@@ -58,11 +76,40 @@ bool elsa_supports_lsatype(elsa_lsatype lsatype)
   return lsatype == LSA_T_AC;
 }
 
+/* LUA-specific magic - this way we don't need to worry about encoding
+ * the elsa correctly as elsa_dispatch parameter. */
+static elsa active_elsa;
+
 void elsa_dispatch(elsa e)
 {
+#if 0
+
   if (e->need_ac)
     {
       e->need_ac = false;
       elsa_ac(e);
     }
+#else
+  int r;
+
+  active_elsa = e;
+  /* Call LUA */
+  lua_getglobal(e->l, "elsa_dispatch");
+  //lua_pushlightuserdata(e->l, (void *)e);
+  //SWIG_Lua_NewPointerObj(e->l,e,SWIGTYPE_p_elsa_struct,0)
+    
+  if ((r = lua_pcall(e->l, 0, 0, 0)))
+    {
+      ELSA_ERROR("error %d in LUA lua_pcall: %s", r, lua_tostring(e->l, -1));
+      lua_pop(e->l, 1);
+    }
+  active_elsa = NULL;
+#endif /* 0 */
+}
+
+/* LUA-specific magic - this way we don't need to worry about encoding
+ * the elsa correctly as elsa_dispatch parameter. */
+elsa elsa_active_get(void)
+{
+  return active_elsa;
 }

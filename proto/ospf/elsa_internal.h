@@ -8,7 +8,7 @@
  *       All rights reserved
  *
  * Created:       Wed Aug  1 14:23:23 2012 mstenber
- * Last modified: Wed Aug 29 12:54:53 2012 mstenber
+ * Last modified: Wed Sep 26 22:29:04 2012 mstenber
  * Edit time:     10 min
  *
  */
@@ -17,6 +17,7 @@
 #define ELSA_INTERNAL_H
 
 #include <assert.h>
+#include <lua.h>
 
 #include "elsa.h"
 #include "elsa_linux_list.h"
@@ -35,6 +36,8 @@ struct elsa_struct {
   int ac_sn;
   struct list_head aps;
   struct elsa_platform_struct platform;
+
+  lua_State *l;
 
   unsigned char buf[65536];
   unsigned char *tail;

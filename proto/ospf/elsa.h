@@ -4,8 +4,8 @@
  * Author: Markus Stenberg <fingon@iki.fi>
  *
  * Created:       Wed Aug  1 13:31:21 2012 mstenber
- * Last modified: Tue Aug 28 15:43:58 2012 mstenber
- * Edit time:     75 min
+ * Last modified: Wed Sep 26 23:23:18 2012 mstenber
+ * Edit time:     77 min
  *
  */
 
@@ -162,5 +162,8 @@ do {                                            \
 elsa_md5 elsai_md5_init(elsa_client client);
 void elsai_md5_update(elsa_md5 md5, const unsigned char *data, int data_len);
 void elsai_md5_final(elsa_md5 md5, void *result);
+
+/* LUA cruft */
+elsa elsa_active_get(void);
 
 #endif /* ELSA_H */

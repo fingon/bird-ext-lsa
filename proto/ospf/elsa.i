@@ -1,6 +1,7 @@
 %module elsa
 %{
 #include "elsa.h"
+#include "elsa_internal.h"
 %}
 
  /* Stuff to make it behave sanely */
@@ -25,7 +26,18 @@ typedef struct elsa_usp_struct *elsa_ac_usp;
 
 /* Only externally visible pointer elsa itself provides. */
 typedef struct elsa_struct *elsa;
+
 typedef unsigned short elsa_lsatype;
+
+/* AF-wise relevant bits */
+struct elsa_struct {
+  elsa_client client;
+
+  bool note_address_add_failures;
+
+  bool need_ac;
+  bool need_originate_ac;
+};
 
 /* From elsa.h */
 
@@ -88,3 +100,5 @@ elsa_ac_usp elsai_ac_usp_get_next(elsa_client client, elsa_ac_usp usp);
 void elsai_ac_usp_get_prefix(elsa_client client, elsa_ac_usp usp,
                              void **result, int *result_size_bits);
 
+/* LUA-specific magic */
+elsa elsa_active_get(void);
