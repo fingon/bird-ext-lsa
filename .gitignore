@@ -28,4 +28,5 @@
 cscope.files
 cscope.out
 
-
+# test stuff
+proto/ospf/test/t-elsa

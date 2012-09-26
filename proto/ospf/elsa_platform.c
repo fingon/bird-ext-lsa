@@ -4,8 +4,8 @@
  * Author: Markus Stenberg <fingon@iki.fi>
  *
  * Created:       Wed Aug  1 14:14:38 2012 mstenber
- * Last modified: Wed Aug 29 12:51:26 2012 mstenber
- * Edit time:     60 min
+ * Last modified: Wed Sep 26 22:13:46 2012 mstenber
+ * Edit time:     61 min
  *
  */
 
@@ -46,6 +46,15 @@ uint32_t elsai_lsa_get_rid(elsa_lsa lsa)
 
   assert(en);
   return en->lsa.rt;
+}
+
+
+elsa_lsatype elsai_lsa_get_type(elsa_lsa lsa)
+{
+  struct top_hash_entry *en = lsa->hash_entry;
+
+  assert(en);
+  return en->lsa.type;
 }
 
 uint32_t elsai_lsa_get_lsid(elsa_lsa lsa)
