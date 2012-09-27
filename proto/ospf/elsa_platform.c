@@ -4,8 +4,8 @@
  * Author: Markus Stenberg <fingon@iki.fi>
  *
  * Created:       Wed Aug  1 14:14:38 2012 mstenber
- * Last modified: Wed Sep 26 22:13:46 2012 mstenber
- * Edit time:     61 min
+ * Last modified: Thu Sep 27 11:07:56 2012 mstenber
+ * Edit time:     62 min
  *
  */
 
@@ -176,12 +176,20 @@ uint8_t elsai_if_get_priority(elsa_client client, elsa_if i)
 elsa_if elsai_if_get(elsa_client client)
 {
   /* Should be just 1 area, but hell.. :-) */
-  return HEAD(client->iface_list);
+  elsa_if i = HEAD(client->iface_list);
+  if (!NODE_VALID(i))
+    i = NULL;
+  /* ELSA_DEBUG("elsai_if_get %p", i); */
+  return i;
 }
 
 elsa_if elsai_if_get_next(elsa_client client, elsa_if ifp)
 {
-  return NODE_NEXT(ifp);
+  elsa_if i = NODE_NEXT(ifp);
+  if (!NODE_VALID(i))
+    i = NULL;
+  /* ELSA_DEBUG("elsai_if_get_next %p => %p", ifp, i); */
+  return i;
 }
 
 

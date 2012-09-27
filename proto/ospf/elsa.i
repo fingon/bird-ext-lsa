@@ -1,13 +1,41 @@
 %module elsa
+%include "typemaps.i"
+
 %{
 #include "elsa.h"
 #include "elsa_internal.h"
 %}
 
+// C input binary buffers
+%typemap(in, numinputs=1) (unsigned char *body, size_t body_len) {
+  if(!lua_isstring(L,$input)) SWIG_fail_arg("???",$input,"<lua string>");
+  $1 = lua_tolstring(L, $input, &$2);
+}
+
+// C output binary buffers
+%typemap(in, numinputs=0) (unsigned char **body, size_t *body_len) (unsigned char *b, size_t bs) {
+  $1 = &b;
+  $2 = &bs;
+ }
+
+%typemap(argout) (unsigned char **body, size_t *body_len) {
+  lua_pushlstring(L, *$1, *$2); SWIG_arg++;
+}
+
+
  /* Stuff to make it behave sanely */
 typedef unsigned int uint32_t;
 typedef unsigned char uint8_t;
 
+/* from ospf.h */
+#define LSA_T_RT	0x2001
+#define LSA_T_NET	0x2002
+#define LSA_T_SUM_NET	0x2003
+#define LSA_T_SUM_RT	0x2004
+#define LSA_T_EXT	0x4005
+#define LSA_T_NSSA	0x2007
+#define LSA_T_LINK	0x0008
+#define LSA_T_PREFIX	0x2009
 
  /* From elsa_platform.h */
 
@@ -58,7 +86,7 @@ void elsai_lsa_originate(elsa_client client,
                          elsa_lsatype lsatype,
                          uint32_t lsid,
                          uint32_t sn,
-                         void *body, size_t body_len);
+                         unsigned char *body, size_t body_len);
 
 /* Get first LSA by type. */
 elsa_lsa elsai_get_lsa_by_type(elsa_client client, elsa_lsatype lsatype);
@@ -70,6 +98,7 @@ elsa_lsa elsai_get_lsa_by_type_next(elsa_client client, elsa_lsa lsa);
 elsa_lsatype elsai_lsa_get_type(elsa_lsa lsa);
 uint32_t elsai_lsa_get_rid(elsa_lsa lsa);
 uint32_t elsai_lsa_get_lsid(elsa_lsa lsa);
+
 void elsai_lsa_get_body(elsa_lsa lsa, unsigned char **body, size_t *body_len);
 
 /******************************************************** Interface handling */
