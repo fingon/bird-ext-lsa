@@ -4,7 +4,7 @@
  * Author: Markus Stenberg <fingon@iki.fi>
  *
  * Created:       Wed Aug  1 14:01:30 2012 mstenber
- * Last modified: Wed Sep 26 23:22:00 2012 mstenber
+ * Last modified: Thu Sep 27 12:49:52 2012 mstenber
  * Edit time:     38 min
  *
  */
@@ -36,6 +36,8 @@ elsa elsa_create(elsa_client client)
     {
       ELSA_ERROR("error %d in lua init: %s", r, lua_tostring(e->l, -1));
       lua_pop(e->l, 1);
+      // is this fatal? hmm
+      abort();
     }
 
   elsa_ac_init(e);
@@ -102,6 +104,8 @@ void elsa_dispatch(elsa e)
     {
       ELSA_ERROR("error %d in LUA lua_pcall: %s", r, lua_tostring(e->l, -1));
       lua_pop(e->l, 1);
+      // is this fatal? hmm
+      abort();
     }
   active_elsa = NULL;
 #endif /* 0 */
