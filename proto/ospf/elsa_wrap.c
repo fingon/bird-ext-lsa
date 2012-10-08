@@ -1510,11 +1510,11 @@ static swig_module_info swig_module = {swig_types, 12, 0, 0, 0, 0};
 
 /* -------- TYPES TABLE (END) -------- */
 
-#define SWIG_name      "elsa"
-#define SWIG_init      luaopen_elsa
-#define SWIG_init_user luaopen_elsa_user
+#define SWIG_name      "elsac"
+#define SWIG_init      luaopen_elsac
+#define SWIG_init_user luaopen_elsac_user
 
-#define SWIG_LUACODE   luaopen_elsa_luacode
+#define SWIG_LUACODE   luaopen_elsac_luacode
 
 
 #ifdef __cplusplus	/* generic alloc/dealloc fns*/
@@ -1933,6 +1933,29 @@ static int _wrap_elsai_get_rid(lua_State* L) {
   
   result = (uint32_t)elsai_get_rid(arg1);
   lua_pushnumber(L, (lua_Number) result); SWIG_arg++;
+  return SWIG_arg;
+  
+  if(0) SWIG_fail;
+  
+fail:
+  lua_error(L);
+  return SWIG_arg;
+}
+
+
+static int _wrap_elsai_change_rid(lua_State* L) {
+  int SWIG_arg = 0;
+  elsa_client arg1 = (elsa_client) 0 ;
+  
+  SWIG_check_num_args("elsai_change_rid",1,1)
+  if(!SWIG_isptrtype(L,1)) SWIG_fail_arg("elsai_change_rid",1,"elsa_client");
+  
+  if (!SWIG_IsOK(SWIG_ConvertPtr(L,1,(void**)&arg1,SWIGTYPE_p_proto_ospf,0))){
+    SWIG_fail_ptr("elsai_change_rid",1,SWIGTYPE_p_proto_ospf);
+  }
+  
+  elsai_change_rid(arg1);
+  
   return SWIG_arg;
   
   if(0) SWIG_fail;
@@ -2419,6 +2442,7 @@ fail:
 
 static const struct luaL_reg swig_commands[] = {
     { "elsai_get_rid", _wrap_elsai_get_rid},
+    { "elsai_change_rid", _wrap_elsai_change_rid},
     { "elsai_lsa_originate", _wrap_elsai_lsa_originate},
     { "elsai_get_lsa_by_type", _wrap_elsai_get_lsa_by_type},
     { "elsai_get_lsa_by_type_next", _wrap_elsai_get_lsa_by_type_next},

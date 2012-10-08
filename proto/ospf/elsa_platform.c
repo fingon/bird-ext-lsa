@@ -4,8 +4,8 @@
  * Author: Markus Stenberg <fingon@iki.fi>
  *
  * Created:       Wed Aug  1 14:14:38 2012 mstenber
- * Last modified: Thu Sep 27 11:07:56 2012 mstenber
- * Edit time:     62 min
+ * Last modified: Mon Oct  8 13:01:45 2012 mstenber
+ * Edit time:     64 min
  *
  */
 
@@ -36,6 +36,13 @@ void elsai_free(elsa_client client, void *ptr)
 uint32_t elsai_get_rid(elsa_client client)
 {
   return client->router_id;
+}
+
+void ospf_dridd_trigger(struct proto_ospf *po);
+
+void elsai_change_rid(elsa_client client)
+{
+  ospf_dridd_trigger(client);
 }
 
 /************************************************************** LSA handling */
@@ -207,10 +214,16 @@ void elsai_lsa_originate(elsa_client client,
   if (!tmp)
     return;
   lsa.age = 0;
+#if 0
   lsa.type = ntohs(lsatype);
   lsa.id = ntohl(lsid);
-  lsa.rt = client->router_id;
   lsa.sn = ntohl(sn);
+#else
+  lsa.type = lsatype;
+  lsa.id = lsid;
+  lsa.sn = sn;
+#endif /* 0 */
+  lsa.rt = client->router_id;
   u32 dom = 0;
   lsa.length = body_len + sizeof(struct ospf_lsa_header);
   lsasum_calculate(&lsa, body);

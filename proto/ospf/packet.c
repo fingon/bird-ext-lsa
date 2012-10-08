@@ -241,6 +241,24 @@ ospf_pkt_checkauth(struct ospf_neighbor *n, struct ospf_iface *ifa, struct ospf_
  
 #endif
 
+void
+ospf_dridd_trigger(struct proto_ospf *po)
+{
+  /* We need to pick new one, as we're numerically inferior. */
+  /* Get rid of the old stored router id and fire off re-configuration. */
+  if (config->rid_filename) {
+    log(L_ERR "Unlinking %s", config->rid_filename);
+    unlink(config->rid_filename);
+  }
+
+  /* FIXME: Rather scary move, this. Changing runtime
+   * configuration on the fly doesn't feel right. */
+  po->proto.cf->router_id = 0;
+  config->router_id = 0,
+
+    /* FIXME: Think how this should be REALLY done. */
+    async_config();
+}
 
 /**
  * ospf_rx_hook
@@ -426,20 +444,7 @@ ospf_rx_hook(sock *sk, int size)
       log(L_ERR "Someone should reconfigure");
       if (memcmp(&sk->faddr, &sk->laddr, sizeof(ip_addr)) > 0) {
         log(L_ERR ".. and it's me!");
-        /* We need to pick new one, as we're numerically inferior. */
-        /* Get rid of the old stored router id and fire off re-configuration. */
-        if (config->rid_filename) {
-          log(L_ERR "Unlinking %s", config->rid_filename);
-          unlink(config->rid_filename);
-        }
-
-        /* FIXME: Rather scary move, this. Changing runtime
-         * configuration on the fly doesn't feel right. */
-        po->proto.cf->router_id = 0;
-        config->router_id = 0,
-
-        /* FIXME: Think how this should be REALLY done. */
-        async_config();
+        ospf_dridd_trigger(po);
       }
     }
     return 1;

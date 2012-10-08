@@ -4,16 +4,18 @@
  * Author: Markus Stenberg <fingon@iki.fi>
  *
  * Created:       Wed Aug  1 14:01:30 2012 mstenber
- * Last modified: Thu Sep 27 12:49:52 2012 mstenber
- * Edit time:     38 min
+ * Last modified: Mon Oct  8 13:05:26 2012 mstenber
+ * Edit time:     39 min
  *
  */
+
+#include <stdlib.h>
 
 #include "elsa_internal.h"
 #include "lauxlib.h"
 #include "lualib.h"
 
-extern int luaopen_elsa(lua_State* L);
+extern int luaopen_elsac(lua_State* L);
 
 elsa elsa_create(elsa_client client)
 {
@@ -29,7 +31,7 @@ elsa elsa_create(elsa_client client)
     }
   e->l = luaL_newstate();
   luaL_openlibs(e->l);
-  luaopen_elsa(e->l);
+  luaopen_elsac(e->l);
   if ((r = luaL_loadfile(e->l, "elsa.lua")) ||
       (r = lua_pcall(e->l, 0, 0, 0))
       )

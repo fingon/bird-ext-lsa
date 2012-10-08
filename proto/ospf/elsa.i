@@ -1,4 +1,4 @@
-%module elsa
+%module elsac
 %include "typemaps.i"
 
 %{
@@ -73,7 +73,7 @@ struct elsa_struct {
 uint32_t elsai_get_rid(elsa_client client);
 
 /* (Try to) change the router ID of the router. */
-// void elsai_change_rid(elsa_client client);
+void elsai_change_rid(elsa_client client);
 
 /**************************************************** LSA handling interface */
 
