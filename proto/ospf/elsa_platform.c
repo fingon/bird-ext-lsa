@@ -4,8 +4,8 @@
  * Author: Markus Stenberg <fingon@iki.fi>
  *
  * Created:       Wed Aug  1 14:14:38 2012 mstenber
- * Last modified: Mon Oct  8 15:03:18 2012 mstenber
- * Edit time:     67 min
+ * Last modified: Mon Oct  8 16:21:18 2012 mstenber
+ * Edit time:     70 min
  *
  */
 
@@ -226,11 +226,13 @@ void elsai_lsa_originate(elsa_client client,
   lsa.rt = client->router_id;
   uint32_t dom = 0;
   lsa.length = body_len + sizeof(struct ospf_lsa_header);
-  lsasum_calculate(&lsa, (void *)body);
 
   need_ac_save = client->elsa->need_ac;
   client->elsa->need_ac = false;
-  memcpy(tmp, body, body_len);
+
+  ntohlsab(body, tmp, body_len);
+  lsasum_calculate(&lsa, (void *)tmp);
+
   (void)lsa_install_new(client, &lsa, dom, tmp);
 
   /* If the AC really _did_ change, ELSA got the notification and set

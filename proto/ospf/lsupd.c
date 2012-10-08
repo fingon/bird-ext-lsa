@@ -50,7 +50,7 @@ static void ospf_dump_lsupd(struct proto *p, struct ospf_lsupd_packet *pkt)
     {
       if (offset > bound)
 	{
-	  log(L_TRACE "%s:     LSA      invalid", p->name);
+	  log(L_TRACE "%s:     LSA      invalid[1]", p->name);
 	  return;
 	}
 
@@ -61,7 +61,7 @@ static void ospf_dump_lsupd(struct proto *p, struct ospf_lsupd_packet *pkt)
 
       if (((lsalen % 4) != 0) || (lsalen <= sizeof(struct ospf_lsa_header)))
 	{
-	  log(L_TRACE "%s:     LSA      invalid", p->name);
+	  log(L_TRACE "%s:     LSA      invalid[2] - %d bytes", p->name, lsalen);
 	  return;
 	}
     }

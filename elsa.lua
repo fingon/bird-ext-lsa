@@ -9,8 +9,8 @@
 --       All rights reserved
 --
 -- Created:       Wed Sep 26 23:01:06 2012 mstenber
--- Last modified: Mon Oct  8 13:56:41 2012 mstenber
--- Edit time:     87 min
+-- Last modified: Mon Oct  8 15:52:21 2012 mstenber
+-- Edit time:     95 min
 --
 
 require 'mst'
@@ -69,11 +69,12 @@ end
 
 function elsaw:originate_lsa(d)
    self:a(d.type == elsa_pa.AC_TYPE, 'support for other types missing')
-   if self.body == d.body
+   if self.last == d.body
    then
       mst.d('skipped duplicate LSA')
       return
    end
+   self.last = d.body
    self.sn = self.sn + 1
    elsac.elsai_lsa_originate(self.c, d.type, 0, self.sn, self.last)
 end
