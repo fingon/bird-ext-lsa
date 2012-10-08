@@ -8,8 +8,8 @@
  *       All rights reserved
  *
  * Created:       Wed Aug  1 14:23:23 2012 mstenber
- * Last modified: Wed Sep 26 22:29:04 2012 mstenber
- * Edit time:     10 min
+ * Last modified: Mon Oct  8 14:55:38 2012 mstenber
+ * Edit time:     13 min
  *
  */
 
@@ -54,11 +54,6 @@ typedef struct elsa_prefix_struct {
 
 #define ELSA_IFNAME_LEN 16
 
-/* XXX: Backward compatibility with old code - get rid of these! */
-typedef uint32_t u32;
-typedef unsigned short u16;
-typedef unsigned char u8;
-
 typedef struct elsa_ap_struct
 {
   /* In-list structure */
@@ -69,19 +64,9 @@ typedef struct elsa_ap_struct
   struct elsa_prefix_struct px;
 
   char ifname[ELSA_IFNAME_LEN]; /* Stored for future use. */
-  u32 rid;                      /* Who is responsible for this prefix.
-                                   Only relevant for assigned prefixes. */
-  u32 my_rid;                   /* My router ID used when configuring
-                                   address. (Relevant as it may change.)*/
-  int valid;                    /* Used in prefix assignment algorithm.
-                                   Only relevant for assigned prefixes. */
-#define OSPF_USP_T_MANUAL 1
-#define OSPF_USP_T_DHCPV6 2
-  u8 type;                      /* Where we learned the prefix from.
-                                   Only relevant for usable prefixes. */
-  u8 pa_priority;               /* The prefix assignment priority of
-                                   the router responsible for this prefix.
-                                   Only relevant for assigned prefixes. */
+  uint32_t rid;
+  uint32_t my_rid;
+  bool valid;
 } *elsa_ap;
 
 /* AC-specific internal API */

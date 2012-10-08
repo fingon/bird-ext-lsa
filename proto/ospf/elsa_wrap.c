@@ -1993,9 +1993,9 @@ static int _wrap_elsai_lsa_originate(lua_State* L) {
   arg4 = (uint32_t)lua_tonumber(L, 4);
   {
     if(!lua_isstring(L,5)) SWIG_fail_arg("???",5,"<lua string>");
-    arg5 = lua_tolstring(L, 5, &arg6);
+    arg5 = (unsigned char *)lua_tolstring(L, 5, &arg6);
   }
-  elsai_lsa_originate(arg1,arg2,arg3,arg4,arg5,arg6);
+  elsai_lsa_originate(arg1,arg2,arg3,arg4,(unsigned char const *)arg5,arg6);
   
   return SWIG_arg;
   

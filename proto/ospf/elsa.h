@@ -4,7 +4,7 @@
  * Author: Markus Stenberg <fingon@iki.fi>
  *
  * Created:       Wed Aug  1 13:31:21 2012 mstenber
- * Last modified: Wed Sep 26 23:23:18 2012 mstenber
+ * Last modified: Mon Oct  8 15:01:39 2012 mstenber
  * Edit time:     77 min
  *
  */
@@ -94,7 +94,7 @@ void elsai_lsa_originate(elsa_client client,
                          elsa_lsatype lsatype,
                          uint32_t lsid,
                          uint32_t sn,
-                         void *body, size_t body_len);
+                         const void *body, size_t body_len);
 
 /* Get first LSA by type. */
 elsa_lsa elsai_get_lsa_by_type(elsa_client client, elsa_lsatype lsatype);

@@ -4,8 +4,8 @@
  * Author: Markus Stenberg <fingon@iki.fi>
  *
  * Created:       Wed Aug  1 14:01:30 2012 mstenber
- * Last modified: Mon Oct  8 13:05:26 2012 mstenber
- * Edit time:     39 min
+ * Last modified: Mon Oct  8 14:57:11 2012 mstenber
+ * Edit time:     40 min
  *
  */
 
@@ -42,7 +42,6 @@ elsa elsa_create(elsa_client client)
       abort();
     }
 
-  elsa_ac_init(e);
   ELSA_DEBUG("created elsa %p for client %p", e, client);
   return e;
 }
@@ -50,7 +49,6 @@ elsa elsa_create(elsa_client client)
 void elsa_destroy(elsa e)
 {
   lua_close(e->l);
-  elsa_ac_uninit(e);
   elsai_free(e->client, e);
   ELSA_DEBUG("destroyed elsa %p", e);
 }
@@ -86,14 +84,6 @@ static elsa active_elsa;
 
 void elsa_dispatch(elsa e)
 {
-#if 0
-
-  if (e->need_ac)
-    {
-      e->need_ac = false;
-      elsa_ac(e);
-    }
-#else
   int r;
 
   active_elsa = e;
@@ -110,7 +100,6 @@ void elsa_dispatch(elsa e)
       abort();
     }
   active_elsa = NULL;
-#endif /* 0 */
 }
 
 /* LUA-specific magic - this way we don't need to worry about encoding

@@ -7,9 +7,9 @@
 %}
 
 // C input binary buffers
-%typemap(in, numinputs=1) (unsigned char *body, size_t body_len) {
+%typemap(in, numinputs=1) (const unsigned char *body, size_t body_len) {
   if(!lua_isstring(L,$input)) SWIG_fail_arg("???",$input,"<lua string>");
-  $1 = lua_tolstring(L, $input, &$2);
+  $1 = (unsigned char *)lua_tolstring(L, $input, &$2);
 }
 
 // C output binary buffers
@@ -86,7 +86,7 @@ void elsai_lsa_originate(elsa_client client,
                          elsa_lsatype lsatype,
                          uint32_t lsid,
                          uint32_t sn,
-                         unsigned char *body, size_t body_len);
+                         const unsigned char *body, size_t body_len);
 
 /* Get first LSA by type. */
 elsa_lsa elsai_get_lsa_by_type(elsa_client client, elsa_lsatype lsatype);
