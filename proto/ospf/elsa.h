@@ -4,8 +4,8 @@
  * Author: Markus Stenberg <fingon@iki.fi>
  *
  * Created:       Wed Aug  1 13:31:21 2012 mstenber
- * Last modified: Mon Oct  8 15:01:39 2012 mstenber
- * Edit time:     77 min
+ * Last modified: Tue Oct  9 16:09:48 2012 mstenber
+ * Edit time:     78 min
  *
  */
 
@@ -59,11 +59,11 @@ elsa elsa_create(elsa_client client);
 void elsa_lsa_changed(elsa e, elsa_lsatype lsatype);
 void elsa_lsa_deleted(elsa e, elsa_lsatype lsatype);
 
-/* Whether ELSA supports given LSAtype. */
-bool elsa_supports_lsatype(elsa_lsatype lsatype);
-
 /* Dispatch ELSA action - should be called once a second (or so). */
 void elsa_dispatch(elsa e);
+
+/* Dispatch ELSA when duplicate LSA has been received. */
+void elsa_duplicate_lsa_dispatch(elsa e, elsa_lsa lsa);
 
 /* Destroy an ELSA instance. */
 void elsa_destroy(elsa e);
@@ -165,5 +165,7 @@ void elsai_md5_final(elsa_md5 md5, void *result);
 
 /* LUA cruft */
 elsa elsa_active_get(void);
+elsa_lsa elsa_active_lsa_get(void);
+void elsa_log_string(const char *string);
 
 #endif /* ELSA_H */

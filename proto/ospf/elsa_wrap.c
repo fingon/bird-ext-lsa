@@ -2444,6 +2444,23 @@ fail:
 }
 
 
+static int _wrap_elsa_active_lsa_get(lua_State* L) {
+  int SWIG_arg = 0;
+  elsa_lsa result;
+  
+  SWIG_check_num_args("elsa_active_lsa_get",0,0)
+  result = (elsa_lsa)elsa_active_lsa_get();
+  SWIG_NewPointerObj(L,result,SWIGTYPE_p_elsa_lsa_struct,0); SWIG_arg++; 
+  return SWIG_arg;
+  
+  if(0) SWIG_fail;
+  
+fail:
+  lua_error(L);
+  return SWIG_arg;
+}
+
+
 static int _wrap_elsa_log_string(lua_State* L) {
   int SWIG_arg = 0;
   char *arg1 = (char *) 0 ;
@@ -2486,6 +2503,7 @@ static const struct luaL_reg swig_commands[] = {
     { "elsai_ac_usp_get_next", _wrap_elsai_ac_usp_get_next},
     { "elsai_ac_usp_get_prefix", _wrap_elsai_ac_usp_get_prefix},
     { "elsa_active_get", _wrap_elsa_active_get},
+    { "elsa_active_lsa_get", _wrap_elsa_active_lsa_get},
     { "elsa_log_string", _wrap_elsa_log_string},
     {0,0}
 };

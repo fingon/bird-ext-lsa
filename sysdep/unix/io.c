@@ -1513,6 +1513,25 @@ sk_dump_all(void)
 #undef ERR
 #undef WARN
 
+static void
+init_random(void)
+{
+  int seed = now_real;
+  unsigned char buf[8];
+  FILE *f;
+
+  /* Try to get from /dev/urandom if available; if not, just use the
+   * seed as is. */
+  f = fopen("/dev/urandom", "r");
+  if (f)
+    {
+      (void)fread(buf, 1, 8, f);
+      fclose(f);
+      seed ^= *((int*)buf);
+    }
+  srandom(seed);
+}
+
 /*
  *	Main I/O Loop
  */
@@ -1530,7 +1549,7 @@ io_init(void)
   krt_io_init();
   init_times();
   update_times();
-  srandom((int) now_real);
+  init_random();
 }
 
 static int short_loops = 0;

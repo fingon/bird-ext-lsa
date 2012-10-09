@@ -131,6 +131,5 @@ void elsai_ac_usp_get_prefix(elsa_client client, elsa_ac_usp usp,
 
 /* LUA-specific magic */
 elsa elsa_active_get(void);
-
-/* More LUA-specific magic */
+elsa_lsa elsa_active_lsa_get(void);
 void elsa_log_string(const char *string);

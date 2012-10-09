@@ -9,8 +9,8 @@
 --       All rights reserved
 --
 -- Created:       Wed Sep 26 23:01:06 2012 mstenber
--- Last modified: Tue Oct  9 13:07:04 2012 mstenber
--- Edit time:     105 min
+-- Last modified: Tue Oct  9 17:01:43 2012 mstenber
+-- Edit time:     121 min
 --
 
 require 'mst'
@@ -79,9 +79,11 @@ function elsaw:originate_lsa(d)
    elsac.elsai_lsa_originate(self.c, d.type, 0, self.sn, self.last)
 end
 
+should_change_rid = false
+
 function elsaw:change_rid()
-   mst.d('changing rid')
-   elsac.change_rid(self.c)
+   mst.d('should change rid')
+   should_change_rid = true
 end
 
 function elsaw:get_hwf()
@@ -115,6 +117,16 @@ function elsai_interfaces(c)
    return elsai_interfaces_iterator, c, nil
 end
 
+function wrap_lsa(l)
+   local t = {}
+   setmetatable(t, {l=l})
+   t.type = elsac.elsai_lsa_get_type(l)
+   t.rid = elsac.elsai_lsa_get_rid(l)
+   t.lsid = elsac.elsai_lsa_get_lsid(l)
+   t.body = elsac.elsai_lsa_get_body(l)
+   return t
+end
+
 -- similar iterator for lsas by type
 function elsai_lsas_by_type_iterator(state, k)
    local c, type = unpack(state)
@@ -129,13 +141,8 @@ function elsai_lsas_by_type_iterator(state, k)
    then
       return
    end
-   local t = {}
-   setmetatable(t, {l=l})
-   t.type = elsac.elsai_lsa_get_type(l)
+   local t = wrap_lsa(l)
    assert(t.type == type, "invalid type for lsa")
-   t.rid = elsac.elsai_lsa_get_rid(l)
-   t.lsid = elsac.elsai_lsa_get_lsid(l)
-   t.body = elsac.elsai_lsa_get_body(l)
    return t
 end
 
@@ -206,18 +213,42 @@ end
 
 function elsa_dispatch()
    mst.d_xpcall(function ()
-
                    -- run the event loop also once, in non-blocking
                    -- mode (this isn't really pretty, but oh well) not
                    -- like the local state communication was really
                    -- that critical
                    ssloop.loop():poll(0)
 
+                   local epa = get_elsa_pa()
+
+                   -- first off, take care of the rid change
+                   -- outright if it seems necessary
+                   if should_change_rid
+                   then
+                      mst.d('changing rid')
+                      elsac.elsai_change_rid(epa.c)
+                      should_change_rid = false
+                      return
+                   end
+                   
                    -- XXX - should we check if we need to run the PA
                    -- alg?  If so, we should consult both SKV state,
                    -- and LSA state
-                   local epa = get_elsa_pa()
                    epa:run()
+                end)
+end
+
+function elsa_duplicate_lsa_dispatch()
+   mst.d_xpcall(function ()
+                   local epa = get_elsa_pa()
+                   local lsa = wrap_lsa(elsac.elsa_active_lsa_get())
+
+                   -- other LSAs we can't do anything about anyway
+                   if lsa.type ~= elsa_pa.AC_TYPE
+                   then
+                      return
+                   end
+                   epa:check_conflict(lsa)
                 end)
 end
 

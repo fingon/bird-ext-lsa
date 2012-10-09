@@ -4,8 +4,8 @@
  * Author: Markus Stenberg <fingon@iki.fi>
  *
  * Created:       Wed Aug  1 14:14:38 2012 mstenber
- * Last modified: Mon Oct  8 16:21:18 2012 mstenber
- * Edit time:     70 min
+ * Last modified: Tue Oct  9 16:54:43 2012 mstenber
+ * Edit time:     75 min
  *
  */
 
@@ -79,8 +79,15 @@ void elsai_lsa_get_body(elsa_lsa lsa, unsigned char **body, size_t *body_len)
 
   assert(en);
   len = en->lsa.length - sizeof(struct ospf_lsa_header);
-  htonlsab(en->lsa_body, lsa->dummy_lsa_buf, len);
-  *body = (void *)lsa->dummy_lsa_buf;
+  if (lsa->swapped)
+    {
+      htonlsab(en->lsa_body, lsa->dummy_lsa_buf, len);
+      *body = (void *)lsa->dummy_lsa_buf;
+    }
+  else
+    {
+      *body = en->lsa_body;
+    }
   *body_len = len;
 }
 
@@ -102,6 +109,7 @@ static elsa_lsa find_next_entry(elsa_client client,
                 continue;
               }
             lsa->hash_entry = e;
+            lsa->swapped = true;
             lsa->hash_bin = i;
             return lsa;
           }
@@ -129,8 +137,9 @@ elsa_lsa elsai_get_lsa_by_type_next(elsa_client client, elsa_lsa lsa)
   while (lsa->hash_entry->next)
     {
       lsa->hash_entry = lsa->hash_entry->next;
+      /* lsa->swapped = true; - should be already! */
       if (lsa->hash_entry->lsa.type == type)
-        return lsa;
+          return lsa;
     }
   lsa->hash_bin++;
   return find_next_entry(client, lsa, type);

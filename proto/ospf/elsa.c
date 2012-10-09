@@ -4,8 +4,8 @@
  * Author: Markus Stenberg <fingon@iki.fi>
  *
  * Created:       Wed Aug  1 14:01:30 2012 mstenber
- * Last modified: Tue Oct  9 12:50:11 2012 mstenber
- * Edit time:     40 min
+ * Last modified: Tue Oct  9 16:11:07 2012 mstenber
+ * Edit time:     47 min
  *
  */
 
@@ -91,7 +91,7 @@ void elsa_dispatch(elsa e)
   lua_getglobal(e->l, "elsa_dispatch");
   //lua_pushlightuserdata(e->l, (void *)e);
   //SWIG_Lua_NewPointerObj(e->l,e,SWIGTYPE_p_elsa_struct,0)
-    
+
   if ((r = lua_pcall(e->l, 0, 0, 0)))
     {
       ELSA_ERROR("error %d in LUA lua_pcall: %s", r, lua_tostring(e->l, -1));
@@ -102,11 +102,40 @@ void elsa_dispatch(elsa e)
   active_elsa = NULL;
 }
 
-/* LUA-specific magic - this way we don't need to worry about encoding
- * the elsa correctly as elsa_dispatch parameter. */
 elsa elsa_active_get(void)
 {
   return active_elsa;
+}
+
+/* LUA-specific magic - this way we don't need to worry about encoding
+ * the elsa correctly as elsa_duplicate_lsa_dispatch parameter. */
+static elsa_lsa active_elsa_lsa;
+
+void elsa_duplicate_lsa_dispatch(elsa e, elsa_lsa lsa)
+{
+  int r;
+
+  active_elsa = e;
+  active_elsa_lsa = lsa;
+  /* Call LUA */
+  lua_getglobal(e->l, "elsa_duplicate_lsa_dispatch");
+  //lua_pushlightuserdata(e->l, (void *)e);
+  //SWIG_Lua_NewPointerObj(e->l,e,SWIGTYPE_p_elsa_struct,0)
+
+  if ((r = lua_pcall(e->l, 0, 0, 0)))
+    {
+      ELSA_ERROR("error %d in LUA lua_pcall: %s", r, lua_tostring(e->l, -1));
+      lua_pop(e->l, 1);
+      // is this fatal? hmm
+      abort();
+    }
+  active_elsa = NULL;
+  active_elsa_lsa = NULL;
+}
+
+elsa_lsa elsa_active_lsa_get(void)
+{
+  return active_elsa_lsa;
 }
 
 void elsa_log_string(const char *string)

@@ -4,8 +4,8 @@
  * Author: Markus Stenberg <fingon@iki.fi>
  *
  * Created:       Wed Aug  1 14:09:11 2012 mstenber
- * Last modified: Wed Sep 26 22:28:26 2012 mstenber
- * Edit time:     16 min
+ * Last modified: Tue Oct  9 16:55:20 2012 mstenber
+ * Edit time:     17 min
  *
  */
 
@@ -35,6 +35,7 @@ typedef struct MD5Context *elsa_md5;
 
 struct elsa_lsa_struct {
   int hash_bin;
+  bool swapped; /* is it swapped to host order? if so, we must reverse it*/
   struct top_hash_entry *hash_entry;
   unsigned char dummy_lsa_buf[65540];
 };
