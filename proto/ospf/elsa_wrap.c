@@ -1677,6 +1677,14 @@ SWIGINTERN void SWIG_write_ptr_array(lua_State* L,void **array,int size,swig_typ
 #include "elsa.h"
 #include "elsa_internal.h"
 
+
+SWIGINTERN int SWIG_lua_isnilstring(lua_State *L, int idx) {
+  int ret = lua_isstring(L, idx);
+  if (!ret)
+   ret = lua_isnil(L, idx);
+  return ret;
+}
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -2436,6 +2444,25 @@ fail:
 }
 
 
+static int _wrap_elsa_log_string(lua_State* L) {
+  int SWIG_arg = 0;
+  char *arg1 = (char *) 0 ;
+  
+  SWIG_check_num_args("elsa_log_string",1,1)
+  if(!SWIG_lua_isnilstring(L,1)) SWIG_fail_arg("elsa_log_string",1,"char const *");
+  arg1 = (char *)lua_tostring(L, 1);
+  elsa_log_string((char const *)arg1);
+  
+  return SWIG_arg;
+  
+  if(0) SWIG_fail;
+  
+fail:
+  lua_error(L);
+  return SWIG_arg;
+}
+
+
 #ifdef __cplusplus
 }
 #endif
@@ -2459,6 +2486,7 @@ static const struct luaL_reg swig_commands[] = {
     { "elsai_ac_usp_get_next", _wrap_elsai_ac_usp_get_next},
     { "elsai_ac_usp_get_prefix", _wrap_elsai_ac_usp_get_prefix},
     { "elsa_active_get", _wrap_elsa_active_get},
+    { "elsa_log_string", _wrap_elsa_log_string},
     {0,0}
 };
 

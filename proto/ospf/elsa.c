@@ -4,7 +4,7 @@
  * Author: Markus Stenberg <fingon@iki.fi>
  *
  * Created:       Wed Aug  1 14:01:30 2012 mstenber
- * Last modified: Mon Oct  8 14:57:11 2012 mstenber
+ * Last modified: Tue Oct  9 12:50:11 2012 mstenber
  * Edit time:     40 min
  *
  */
@@ -107,4 +107,9 @@ void elsa_dispatch(elsa e)
 elsa elsa_active_get(void)
 {
   return active_elsa;
+}
+
+void elsa_log_string(const char *string)
+{
+  log(L_TRACE "%s", string);
 }
