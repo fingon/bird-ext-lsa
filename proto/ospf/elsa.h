@@ -4,8 +4,8 @@
  * Author: Markus Stenberg <fingon@iki.fi>
  *
  * Created:       Wed Aug  1 13:31:21 2012 mstenber
- * Last modified: Tue Oct  9 16:09:48 2012 mstenber
- * Edit time:     78 min
+ * Last modified: Fri Oct 12 13:08:51 2012 mstenber
+ * Edit time:     81 min
  *
  */
 
@@ -120,8 +120,17 @@ elsa_if elsai_if_get_next(elsa_client client, elsa_if ifp);
 
 const char * elsai_if_get_name(elsa_client client, elsa_if i);
 uint32_t elsai_if_get_index(elsa_client client, elsa_if i);
-/* uint32_t elsai_if_get_neigh_iface_id(elsa_client client, elsa_if i, uint32_t rid); */
 uint8_t elsai_if_get_priority(elsa_client client, elsa_if i);
+
+/* Get first neighbor */
+elsa_neigh elsai_if_get_neigh(elsa_client client, elsa_if i);
+
+/********************************************************* Neighbor handling */
+uint32_t elsai_neigh_get_rid(elsa_client client, elsa_neigh neigh);
+uint32_t elsai_neigh_get_iid(elsa_client client, elsa_neigh neigh);
+
+/* Get next neighbor (in list) */
+elsa_neigh elsai_neigh_geT_next(elsa_client client, elsa_neigh neigh);
 
 /************************************************ Configured AC USP handling */
 

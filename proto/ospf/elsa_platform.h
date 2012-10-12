@@ -4,7 +4,7 @@
  * Author: Markus Stenberg <fingon@iki.fi>
  *
  * Created:       Wed Aug  1 14:09:11 2012 mstenber
- * Last modified: Tue Oct  9 16:55:20 2012 mstenber
+ * Last modified: Fri Oct 12 13:09:40 2012 mstenber
  * Edit time:     17 min
  *
  */
@@ -26,6 +26,9 @@ typedef struct elsa_lsa_struct *elsa_lsa;
 
 /* Opaque IF blob. */
 typedef struct ospf_iface *elsa_if;
+
+/* Opaque neighbor blob. */
+typedef struct ospf_neighbor *elsa_neigh;
 
 /* Opaque USP blob. */
 typedef struct elsa_usp_struct *elsa_ac_usp;

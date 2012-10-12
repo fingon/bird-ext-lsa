@@ -9,8 +9,8 @@
 --       All rights reserved
 --
 -- Created:       Wed Sep 26 23:01:06 2012 mstenber
--- Last modified: Tue Oct  9 17:01:43 2012 mstenber
--- Edit time:     121 min
+-- Last modified: Fri Oct 12 15:06:04 2012 mstenber
+-- Edit time:     125 min
 --
 
 require 'mst'
@@ -60,10 +60,25 @@ function elsaw:iterate_lsa(f, criteria)
    end
 end
 
+local _eif_cache
+
 function elsaw:iterate_if(rid, f)
    for i in elsai_interfaces(self.c)
    do
       f(i)
+   end
+end
+
+function elsaw:iterate_ifo_neigh(rid, ifo, f)
+   local i = _eif_cache[ifo.index]
+   mst.a(i, 'unable to find interface', ifo)
+   local n = elsac.elsai_if_get_neigh(self.c, i)
+   while n
+   do
+      local iid = elsac.elsai_neigh_get_iid(self.c, n)
+      local rid = elsac.elsai_neigh_get_rid(self.c, n)
+      f(iid, rid)
+      n = elsac.elsai_neigh_get_next(self.c, n)
    end
 end
 
@@ -109,11 +124,14 @@ function elsai_interfaces_iterator(c, k)
    t.name = elsac.elsai_if_get_name(c, i)
    t.index = elsac.elsai_if_get_index(c, i)
    t.priority = elsac.elsai_if_get_priority(c, i)
+   _eif_cache[t.index] = i
    --mst.d(i, mst.repr(t))
    return t
 end
 
 function elsai_interfaces(c)
+   -- clear the cache every time iteration starts 
+   _eif_cache = {}
    return elsai_interfaces_iterator, c, nil
 end
 

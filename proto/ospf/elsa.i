@@ -48,6 +48,9 @@ typedef struct elsa_lsa_struct *elsa_lsa;
 /* Opaque IF blob. */
 typedef struct ospf_iface *elsa_if;
 
+/* Opaque neighbor blob. */
+typedef struct ospf_neighbor *elsa_neigh;
+
 /* Opaque USP blob. */
 typedef struct elsa_usp_struct *elsa_ac_usp;
 
@@ -113,8 +116,19 @@ elsa_if elsai_if_get_next(elsa_client client, elsa_if ifp);
 
 const char * elsai_if_get_name(elsa_client client, elsa_if i);
 uint32_t elsai_if_get_index(elsa_client client, elsa_if i);
-/* uint32_t elsai_if_get_neigh_iface_id(elsa_client client, elsa_if i, uint32_t rid); */
 uint8_t elsai_if_get_priority(elsa_client client, elsa_if i);
+
+/* Get first neighbor */
+elsa_neigh elsai_if_get_neigh(elsa_client client, elsa_if i);
+
+/********************************************************* Neighbor handling */
+
+/* Get neighbor's values */
+uint32_t elsai_neigh_get_rid(elsa_client client, elsa_neigh neigh);
+uint32_t elsai_neigh_get_iid(elsa_client client, elsa_neigh neigh);
+
+/* Get next neighbor (in a list) */
+elsa_neigh elsai_neigh_get_next(elsa_client client, elsa_neigh neigh);
 
 /************************************************ Configured AC USP handling */
 

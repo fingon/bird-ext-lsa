@@ -4,8 +4,8 @@
  * Author: Markus Stenberg <fingon@iki.fi>
  *
  * Created:       Wed Aug  1 14:14:38 2012 mstenber
- * Last modified: Tue Oct  9 16:54:43 2012 mstenber
- * Edit time:     75 min
+ * Last modified: Fri Oct 12 13:17:13 2012 mstenber
+ * Edit time:     79 min
  *
  */
 
@@ -147,6 +147,16 @@ elsa_lsa elsai_get_lsa_by_type_next(elsa_client client, elsa_lsa lsa)
 
 /*************************************************************** IF handling */
 
+elsa_if elsai_if_get(elsa_client client)
+{
+  /* Should be just 1 area, but hell.. :-) */
+  elsa_if i = HEAD(client->iface_list);
+  if (!NODE_VALID(i))
+    i = NULL;
+  /* ELSA_DEBUG("elsai_if_get %p", i); */
+  return i;
+}
+
 const char *elsai_if_get_name(elsa_client client, elsa_if i)
 {
   if (!i->iface)
@@ -164,39 +174,10 @@ uint32_t elsai_if_get_index(elsa_client client, elsa_if i)
   return i->iface->index;
 }
 
-uint32_t elsai_if_get_neigh_iface_id(elsa_client client,
-                                     elsa_if i,
-                                     uint32_t rid)
-{
-  struct ospf_neighbor *neigh;
-
-  WALK_LIST(neigh, i->neigh_list)
-    {
-      if (neigh->state >= NEIGHBOR_INIT)
-        {
-          if (neigh->rid == rid)
-            {
-              return neigh->iface_id;
-            }
-        }
-    }
-  return 0;
-}
-
 uint8_t elsai_if_get_priority(elsa_client client, elsa_if i)
 {
   /* XXX - someday put interface config back in? */
   return 50;
-}
-
-elsa_if elsai_if_get(elsa_client client)
-{
-  /* Should be just 1 area, but hell.. :-) */
-  elsa_if i = HEAD(client->iface_list);
-  if (!NODE_VALID(i))
-    i = NULL;
-  /* ELSA_DEBUG("elsai_if_get %p", i); */
-  return i;
 }
 
 elsa_if elsai_if_get_next(elsa_client client, elsa_if ifp)
@@ -207,6 +188,47 @@ elsa_if elsai_if_get_next(elsa_client client, elsa_if ifp)
   /* ELSA_DEBUG("elsai_if_get_next %p => %p", ifp, i); */
   return i;
 }
+
+/********************************************************* Neighbor handling */
+
+elsa_neigh elsai_if_get_neigh(elsa_client client, elsa_if i)
+{
+  elsa_neigh n = HEAD(i->neigh_list);
+
+  if (!NODE_VALID(n))
+    return NULL;
+  while (NODE_VALID(n) && n->state < NEIGHBOR_INIT)
+    n = NODE_NEXT(n);
+  if (NODE_VALID(n) && n->state >= NEIGHBOR_INIT)
+    return n;
+  return NULL;
+}
+
+uint32_t elsai_neigh_get_rid(elsa_client client, elsa_neigh neigh)
+{
+  return neigh->rid;
+}
+
+uint32_t elsai_neigh_get_iid(elsa_client client, elsa_neigh neigh)
+{
+  return neigh->iface_id;
+}
+
+elsa_neigh elsai_neigh_get_next(elsa_client client, elsa_neigh neigh)
+{
+  elsa_neigh n = NODE_NEXT(neigh);
+
+  while (NODE_VALID(n) && n->state < NEIGHBOR_INIT)
+    n = NODE_NEXT(n);
+  if (NODE_VALID(n) && n->state >= NEIGHBOR_INIT)
+    return n;
+  return NULL;
+}
+
+
+
+/*************************************************************** Other stuff */
+
 
 
 void elsai_lsa_originate(elsa_client client,

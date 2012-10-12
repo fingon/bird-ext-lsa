@@ -1496,15 +1496,16 @@ SWIG_Lua_dostring(lua_State *L, const char* str) {
 #define SWIGTYPE_p_elsa_usp_struct swig_types[2]
 #define SWIGTYPE_p_int swig_types[3]
 #define SWIGTYPE_p_ospf_iface swig_types[4]
-#define SWIGTYPE_p_p_unsigned_char swig_types[5]
-#define SWIGTYPE_p_p_void swig_types[6]
-#define SWIGTYPE_p_proto_ospf swig_types[7]
-#define SWIGTYPE_p_size_t swig_types[8]
-#define SWIGTYPE_p_unsigned_char swig_types[9]
-#define SWIGTYPE_p_unsigned_int swig_types[10]
-#define SWIGTYPE_p_unsigned_short swig_types[11]
-static swig_type_info *swig_types[13];
-static swig_module_info swig_module = {swig_types, 12, 0, 0, 0, 0};
+#define SWIGTYPE_p_ospf_neighbor swig_types[5]
+#define SWIGTYPE_p_p_unsigned_char swig_types[6]
+#define SWIGTYPE_p_p_void swig_types[7]
+#define SWIGTYPE_p_proto_ospf swig_types[8]
+#define SWIGTYPE_p_size_t swig_types[9]
+#define SWIGTYPE_p_unsigned_char swig_types[10]
+#define SWIGTYPE_p_unsigned_int swig_types[11]
+#define SWIGTYPE_p_unsigned_short swig_types[12]
+static swig_type_info *swig_types[14];
+static swig_module_info swig_module = {swig_types, 13, 0, 0, 0, 0};
 #define SWIG_TypeQuery(name) SWIG_TypeQueryModule(&swig_module, &swig_module, name)
 #define SWIG_MangledTypeQuery(name) SWIG_MangledTypeQueryModule(&swig_module, &swig_module, name)
 
@@ -2328,6 +2329,130 @@ fail:
 }
 
 
+static int _wrap_elsai_if_get_neigh(lua_State* L) {
+  int SWIG_arg = 0;
+  elsa_client arg1 = (elsa_client) 0 ;
+  elsa_if arg2 = (elsa_if) 0 ;
+  elsa_neigh result;
+  
+  SWIG_check_num_args("elsai_if_get_neigh",2,2)
+  if(!SWIG_isptrtype(L,1)) SWIG_fail_arg("elsai_if_get_neigh",1,"elsa_client");
+  if(!SWIG_isptrtype(L,2)) SWIG_fail_arg("elsai_if_get_neigh",2,"elsa_if");
+  
+  if (!SWIG_IsOK(SWIG_ConvertPtr(L,1,(void**)&arg1,SWIGTYPE_p_proto_ospf,0))){
+    SWIG_fail_ptr("elsai_if_get_neigh",1,SWIGTYPE_p_proto_ospf);
+  }
+  
+  
+  if (!SWIG_IsOK(SWIG_ConvertPtr(L,2,(void**)&arg2,SWIGTYPE_p_ospf_iface,0))){
+    SWIG_fail_ptr("elsai_if_get_neigh",2,SWIGTYPE_p_ospf_iface);
+  }
+  
+  result = (elsa_neigh)elsai_if_get_neigh(arg1,arg2);
+  SWIG_NewPointerObj(L,result,SWIGTYPE_p_ospf_neighbor,0); SWIG_arg++; 
+  return SWIG_arg;
+  
+  if(0) SWIG_fail;
+  
+fail:
+  lua_error(L);
+  return SWIG_arg;
+}
+
+
+static int _wrap_elsai_neigh_get_rid(lua_State* L) {
+  int SWIG_arg = 0;
+  elsa_client arg1 = (elsa_client) 0 ;
+  elsa_neigh arg2 = (elsa_neigh) 0 ;
+  uint32_t result;
+  
+  SWIG_check_num_args("elsai_neigh_get_rid",2,2)
+  if(!SWIG_isptrtype(L,1)) SWIG_fail_arg("elsai_neigh_get_rid",1,"elsa_client");
+  if(!SWIG_isptrtype(L,2)) SWIG_fail_arg("elsai_neigh_get_rid",2,"elsa_neigh");
+  
+  if (!SWIG_IsOK(SWIG_ConvertPtr(L,1,(void**)&arg1,SWIGTYPE_p_proto_ospf,0))){
+    SWIG_fail_ptr("elsai_neigh_get_rid",1,SWIGTYPE_p_proto_ospf);
+  }
+  
+  
+  if (!SWIG_IsOK(SWIG_ConvertPtr(L,2,(void**)&arg2,SWIGTYPE_p_ospf_neighbor,0))){
+    SWIG_fail_ptr("elsai_neigh_get_rid",2,SWIGTYPE_p_ospf_neighbor);
+  }
+  
+  result = (uint32_t)elsai_neigh_get_rid(arg1,arg2);
+  lua_pushnumber(L, (lua_Number) result); SWIG_arg++;
+  return SWIG_arg;
+  
+  if(0) SWIG_fail;
+  
+fail:
+  lua_error(L);
+  return SWIG_arg;
+}
+
+
+static int _wrap_elsai_neigh_get_iid(lua_State* L) {
+  int SWIG_arg = 0;
+  elsa_client arg1 = (elsa_client) 0 ;
+  elsa_neigh arg2 = (elsa_neigh) 0 ;
+  uint32_t result;
+  
+  SWIG_check_num_args("elsai_neigh_get_iid",2,2)
+  if(!SWIG_isptrtype(L,1)) SWIG_fail_arg("elsai_neigh_get_iid",1,"elsa_client");
+  if(!SWIG_isptrtype(L,2)) SWIG_fail_arg("elsai_neigh_get_iid",2,"elsa_neigh");
+  
+  if (!SWIG_IsOK(SWIG_ConvertPtr(L,1,(void**)&arg1,SWIGTYPE_p_proto_ospf,0))){
+    SWIG_fail_ptr("elsai_neigh_get_iid",1,SWIGTYPE_p_proto_ospf);
+  }
+  
+  
+  if (!SWIG_IsOK(SWIG_ConvertPtr(L,2,(void**)&arg2,SWIGTYPE_p_ospf_neighbor,0))){
+    SWIG_fail_ptr("elsai_neigh_get_iid",2,SWIGTYPE_p_ospf_neighbor);
+  }
+  
+  result = (uint32_t)elsai_neigh_get_iid(arg1,arg2);
+  lua_pushnumber(L, (lua_Number) result); SWIG_arg++;
+  return SWIG_arg;
+  
+  if(0) SWIG_fail;
+  
+fail:
+  lua_error(L);
+  return SWIG_arg;
+}
+
+
+static int _wrap_elsai_neigh_get_next(lua_State* L) {
+  int SWIG_arg = 0;
+  elsa_client arg1 = (elsa_client) 0 ;
+  elsa_neigh arg2 = (elsa_neigh) 0 ;
+  elsa_neigh result;
+  
+  SWIG_check_num_args("elsai_neigh_get_next",2,2)
+  if(!SWIG_isptrtype(L,1)) SWIG_fail_arg("elsai_neigh_get_next",1,"elsa_client");
+  if(!SWIG_isptrtype(L,2)) SWIG_fail_arg("elsai_neigh_get_next",2,"elsa_neigh");
+  
+  if (!SWIG_IsOK(SWIG_ConvertPtr(L,1,(void**)&arg1,SWIGTYPE_p_proto_ospf,0))){
+    SWIG_fail_ptr("elsai_neigh_get_next",1,SWIGTYPE_p_proto_ospf);
+  }
+  
+  
+  if (!SWIG_IsOK(SWIG_ConvertPtr(L,2,(void**)&arg2,SWIGTYPE_p_ospf_neighbor,0))){
+    SWIG_fail_ptr("elsai_neigh_get_next",2,SWIGTYPE_p_ospf_neighbor);
+  }
+  
+  result = (elsa_neigh)elsai_neigh_get_next(arg1,arg2);
+  SWIG_NewPointerObj(L,result,SWIGTYPE_p_ospf_neighbor,0); SWIG_arg++; 
+  return SWIG_arg;
+  
+  if(0) SWIG_fail;
+  
+fail:
+  lua_error(L);
+  return SWIG_arg;
+}
+
+
 static int _wrap_elsai_ac_usp_get(lua_State* L) {
   int SWIG_arg = 0;
   elsa_client arg1 = (elsa_client) 0 ;
@@ -2499,6 +2624,10 @@ static const struct luaL_reg swig_commands[] = {
     { "elsai_if_get_name", _wrap_elsai_if_get_name},
     { "elsai_if_get_index", _wrap_elsai_if_get_index},
     { "elsai_if_get_priority", _wrap_elsai_if_get_priority},
+    { "elsai_if_get_neigh", _wrap_elsai_if_get_neigh},
+    { "elsai_neigh_get_rid", _wrap_elsai_neigh_get_rid},
+    { "elsai_neigh_get_iid", _wrap_elsai_neigh_get_iid},
+    { "elsai_neigh_get_next", _wrap_elsai_neigh_get_next},
     { "elsai_ac_usp_get", _wrap_elsai_ac_usp_get},
     { "elsai_ac_usp_get_next", _wrap_elsai_ac_usp_get_next},
     { "elsai_ac_usp_get_prefix", _wrap_elsai_ac_usp_get_prefix},
@@ -2531,6 +2660,7 @@ static swig_type_info _swigt__p_elsa_struct = {"_p_elsa_struct", "struct elsa_st
 static swig_type_info _swigt__p_elsa_usp_struct = {"_p_elsa_usp_struct", "elsa_ac_usp|struct elsa_usp_struct *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_int = {"_p_int", "int *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_ospf_iface = {"_p_ospf_iface", "struct ospf_iface *|elsa_if", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_ospf_neighbor = {"_p_ospf_neighbor", "struct ospf_neighbor *|elsa_neigh", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_unsigned_char = {"_p_p_unsigned_char", "unsigned char **", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_void = {"_p_p_void", "void **", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_proto_ospf = {"_p_proto_ospf", "struct proto_ospf *|elsa_client", 0, 0, (void*)0, 0};
@@ -2545,6 +2675,7 @@ static swig_type_info *swig_type_initial[] = {
   &_swigt__p_elsa_usp_struct,
   &_swigt__p_int,
   &_swigt__p_ospf_iface,
+  &_swigt__p_ospf_neighbor,
   &_swigt__p_p_unsigned_char,
   &_swigt__p_p_void,
   &_swigt__p_proto_ospf,
@@ -2559,6 +2690,7 @@ static swig_cast_info _swigc__p_elsa_struct[] = {  {&_swigt__p_elsa_struct, 0, 0
 static swig_cast_info _swigc__p_elsa_usp_struct[] = {  {&_swigt__p_elsa_usp_struct, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_int[] = {  {&_swigt__p_int, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_ospf_iface[] = {  {&_swigt__p_ospf_iface, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_ospf_neighbor[] = {  {&_swigt__p_ospf_neighbor, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_p_unsigned_char[] = {  {&_swigt__p_p_unsigned_char, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_p_void[] = {  {&_swigt__p_p_void, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_proto_ospf[] = {  {&_swigt__p_proto_ospf, 0, 0, 0},{0, 0, 0, 0}};
@@ -2573,6 +2705,7 @@ static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_elsa_usp_struct,
   _swigc__p_int,
   _swigc__p_ospf_iface,
+  _swigc__p_ospf_neighbor,
   _swigc__p_p_unsigned_char,
   _swigc__p_p_void,
   _swigc__p_proto_ospf,
