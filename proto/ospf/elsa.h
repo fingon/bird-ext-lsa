@@ -4,8 +4,8 @@
  * Author: Markus Stenberg <fingon@iki.fi>
  *
  * Created:       Wed Aug  1 13:31:21 2012 mstenber
- * Last modified: Fri Oct 12 13:08:51 2012 mstenber
- * Edit time:     81 min
+ * Last modified: Tue Oct 16 09:48:38 2012 mstenber
+ * Edit time:     82 min
  *
  */
 
@@ -82,6 +82,11 @@ uint32_t elsai_get_rid(elsa_client client);
 
 /* (Try to) change the router ID of the router. */
 void elsai_change_rid(elsa_client client);
+
+/* Get route to the rid; returned next-hop address + if (NULL if no
+   route). */
+void elsai_route_to_rid(elsa_client client, uint32_t rid,
+                        char **output_nh, char **output_if);
 
 /**************************************************** LSA handling interface */
 

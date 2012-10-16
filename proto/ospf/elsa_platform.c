@@ -4,8 +4,8 @@
  * Author: Markus Stenberg <fingon@iki.fi>
  *
  * Created:       Wed Aug  1 14:14:38 2012 mstenber
- * Last modified: Fri Oct 12 13:17:13 2012 mstenber
- * Edit time:     79 min
+ * Last modified: Tue Oct 16 12:05:31 2012 mstenber
+ * Edit time:     96 min
  *
  */
 
@@ -43,6 +43,65 @@ void ospf_dridd_trigger(struct proto_ospf *po);
 void elsai_change_rid(elsa_client client)
 {
   ospf_dridd_trigger(client);
+}
+
+/* Sigh.. cut-n-pate from rt.c */
+#ifdef OSPFv2
+#define ipa_from_rid(x) _MI(x)
+#else /* OSPFv3 */
+#define ipa_from_rid(x) _MI(0,0,0,x)
+#endif
+
+void elsai_route_to_rid(elsa_client client, uint32_t rid,
+                        char **output_nh, char **output_if)
+{
+  /* There seems to be two (bad) solutions to this. First one doesn't
+     work without changes to rt.c, second one works but shouldn't
+     (according to code comments). */
+#if 0
+  /* This uses rt.c internal data structures, and can't work -
+     the structures are cleared at end of calculation. */
+  struct ospf_area *area = ospf_find_area(client, 0);
+  ip_addr addr = ipa_from_rid(rid);
+  ort *r = (ort *)fib_find(&area->rtr, &addr, MAX_PREFIX_LENGTH);
+  /* ~maximum is 2+1 * 8 = ~24 bytes */
+  static char nh_buf[25];
+
+  *output_nh = NULL;
+  *output_if = NULL;
+  ELSA_DEBUG("elsai_route_to_rid %x got %p %p %p",
+             rid,
+             r,
+             r ? r->n.nhs : NULL,
+             r && r->n.nhs ? r->n.nhs->iface : NULL);
+  if (r && r->n.nhs && r->n.nhs->iface)
+    {
+      ip_ntop(r->n.nhs->gw, nh_buf);
+      *output_nh = nh_buf;
+      *output_if = r->n.nhs->iface->name;
+    }
+#else
+  /* This uses topology.[ch] API, which is reasonable choice, but
+     code comment says ->nhs is valid only during SPF calculation. This
+     isn't, strictly speaking, true, at the moment. */
+  struct top_hash_entry *en = ospf_hash_find_rt(client->gr, 0, rid);
+  /* ~maximum is 2+1 * 8 = ~24 bytes */
+  static char nh_buf[25];
+
+  *output_nh = NULL;
+  *output_if = NULL;
+  ELSA_DEBUG("elsai_route_to_rid %x got %p %p %p",
+             rid,
+             en,
+             en ? en->nhs : NULL,
+             en && en->nhs ? en->nhs->iface : NULL);
+  if (en && en->nhs && en->nhs->iface)
+    {
+      ip_ntop(en->nhs->gw, nh_buf);
+      *output_nh = nh_buf;
+      *output_if = en->nhs->iface->name;
+    }
+#endif /* 0 */
 }
 
 /************************************************************** LSA handling */

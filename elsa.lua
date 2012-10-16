@@ -9,8 +9,8 @@
 --       All rights reserved
 --
 -- Created:       Wed Sep 26 23:01:06 2012 mstenber
--- Last modified: Fri Oct 12 15:06:04 2012 mstenber
--- Edit time:     125 min
+-- Last modified: Tue Oct 16 11:15:23 2012 mstenber
+-- Edit time:     134 min
 --
 
 require 'mst'
@@ -77,7 +77,7 @@ function elsaw:iterate_ifo_neigh(rid, ifo, f)
    do
       local iid = elsac.elsai_neigh_get_iid(self.c, n)
       local rid = elsac.elsai_neigh_get_rid(self.c, n)
-      f(iid, rid)
+      f{iid=iid, rid=rid}
       n = elsac.elsai_neigh_get_next(self.c, n)
    end
 end
@@ -103,6 +103,12 @@ end
 
 function elsaw:get_hwf()
    return self.hwf
+end
+
+function elsaw:route_to_rid(rid)
+   local nh, ifname = elsac.elsai_route_to_rid(self.c, rid)
+   local r = {nh=nh, ifname=ifname}
+   return r
 end
 
 -- iterate through the interfaces provided by the low-level elsai interface,
@@ -202,7 +208,7 @@ function _debug_state()
    print('got link array', mst.repr(l))
    
    local rid = elsac.elsai_get_rid(c)
-   print('got rid', string.format('%x', rid))
+   print('router rid', string.format('%x', rid))
 end
 
 local _elsa_pa = false
@@ -215,7 +221,7 @@ function get_elsa_pa()
    mst.d('got client', c)
    
    local rid = elsac.elsai_get_rid(c)
-   mst.d('got rid', string.format('%x', rid))
+   mst.d('router rid', string.format('%x', rid))
 
    if not _elsa_pa
    then

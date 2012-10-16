@@ -23,6 +23,23 @@
 }
 
 
+// C output nh+ifname
+
+%typemap(in, numinputs=0) (char **output_nh, char **output_if) (char *nh, char *ifname) {
+  $1 = &nh;
+  $2 = &ifname;
+ }
+
+
+%typemap(argout) (char **output_nh, char **output_if) {
+  if (*$1 && *$2)
+    {
+      lua_pushlstring(L, *$1, strlen(*$1)); SWIG_arg++;
+      lua_pushlstring(L, *$2, strlen(*$2)); SWIG_arg++;
+    }
+}
+
+
  /* Stuff to make it behave sanely */
 typedef unsigned int uint32_t;
 typedef unsigned char uint8_t;
@@ -77,6 +94,11 @@ uint32_t elsai_get_rid(elsa_client client);
 
 /* (Try to) change the router ID of the router. */
 void elsai_change_rid(elsa_client client);
+
+/* Get route to the rid; returned next-hop address + if (NULL if no
+   route). */
+void elsai_route_to_rid(elsa_client client, uint32_t rid,
+                        char **output_nh, char **output_if);
 
 /**************************************************** LSA handling interface */
 
