@@ -1539,6 +1539,15 @@ init_random(void)
 volatile int async_config_flag;		/* Asynchronous reconfiguration/dump scheduled */
 volatile int async_dump_flag;
 
+void rm_file_and_queue_async_config(const char *filename)
+{
+  if (filename) {
+    log(L_ERR "Unlinking %s", filename);
+    unlink(filename);
+  }
+  async_config_flag = 1;
+}
+
 void
 io_init(void)
 {

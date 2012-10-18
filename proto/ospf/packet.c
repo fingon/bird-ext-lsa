@@ -241,23 +241,19 @@ ospf_pkt_checkauth(struct ospf_neighbor *n, struct ospf_iface *ifa, struct ospf_
  
 #endif
 
+void rm_file_and_queue_async_config(const char *filename);
+
 void
 ospf_dridd_trigger(struct proto_ospf *po)
 {
-  /* We need to pick new one, as we're numerically inferior. */
-  /* Get rid of the old stored router id and fire off re-configuration. */
-  if (config->rid_filename) {
-    log(L_ERR "Unlinking %s", config->rid_filename);
-    unlink(config->rid_filename);
-  }
-
   /* FIXME: Rather scary move, this. Changing runtime
    * configuration on the fly doesn't feel right. */
   po->proto.cf->router_id = 0;
-  config->router_id = 0,
+  config->router_id = 0;
 
-    /* FIXME: Think how this should be REALLY done. */
-    async_config();
+  /* We need to pick new one, as we're numerically inferior. */
+  /* Get rid of the old stored router id and fire off re-configuration. */
+  rm_file_and_queue_async_config(config->rid_filename);
 }
 
 /**
