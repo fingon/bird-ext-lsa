@@ -9,8 +9,8 @@
 --       All rights reserved
 --
 -- Created:       Wed Sep 26 23:01:06 2012 mstenber
--- Last modified: Tue Oct 16 11:15:23 2012 mstenber
--- Edit time:     134 min
+-- Last modified: Mon Oct 22 13:18:22 2012 mstenber
+-- Edit time:     135 min
 --
 
 require 'mst'
@@ -262,7 +262,7 @@ function elsa_dispatch()
                 end)
 end
 
-function elsa_duplicate_lsa_dispatch()
+function elsa_notify_duplicate_lsa()
    mst.d_xpcall(function ()
                    local epa = get_elsa_pa()
                    local lsa = wrap_lsa(elsac.elsa_active_lsa_get())

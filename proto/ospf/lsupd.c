@@ -584,14 +584,10 @@ ospf_lsupd_receive(struct ospf_packet *ps_i, struct ospf_iface *ifa,
 		   lsatmp.type, lsatmp.id, lsatmp.rt);
 
         /* Give ELSA first dibs at doing something with it.*/
-        dummy_elsa_lsa =
-          &po->elsa->platform.lsa[po->elsa->platform.last_lsa++
-                                  % SUPPORTED_SIMULTANEOUS_LSA_ITERATIONS];
-        dummy_elsa_lsa->swapped = false;
-        dummy_elsa_lsa->hash_entry = &dummy_the;
         dummy_the.lsa = lsatmp;
         dummy_the.lsa_body = lsa + 1;
-        elsa_duplicate_lsa_dispatch(po->elsa, dummy_elsa_lsa);
+        dummy_elsa_lsa = elsa_platform_wrap_lsa(po, &dummy_the);
+        elsa_notify_duplicate_lsa(po->elsa, dummy_elsa_lsa);
 
 	if (lsadb)
 	{

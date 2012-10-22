@@ -93,43 +93,11 @@ struct ospf_config
   byte rfc1583;
 #ifdef OSPFv3
   byte dridd;                   /* Is duplicate RID detection enabled? */
-  byte pxassignment;            /* Is prefix assignment enabled? */
-  list usp_list;                /* list of struct prefix_node.
-                                   Usable Prefixes to be placed in our own AC LSAs */
 #endif
   byte abr;
   int ecmp;
   list area_list;		/* list of struct ospf_area_config */
   list vlink_list;		/* list of struct ospf_iface_patt */
-};
-
-struct prefix_node
-{
-  node n;
-  struct prefix px;
-  /* FIXME: This should be a #define and not value copied from nest/iface.h */
-  char ifname[16];              /* Stored for future use. */
-  u32 rid;                      /* Who is responsible for this prefix.
-                                   Only relevant for assigned prefixes. */
-  u32 my_rid;                   /* My router ID used when configuring
-                                   address. (Relevant as it may change.)*/
-  int valid;                    /* Used in prefix assignment algorithm.
-                                   Only relevant for assigned prefixes. */
-#define OSPF_USP_T_MANUAL 1
-#define OSPF_USP_T_DHCPV6 2
-  u8 type;                      /* Where we learned the prefix from.
-                                   Only relevant for usable prefixes. */
-  u8 pa_priority;               /* The prefix assignment priority of
-                                   the router responsible for this prefix.
-                                   Only relevant for assigned prefixes. */
-};
-
-struct ospf_iface_prefixes
-{
-  node n;
-  struct iface *iface;
-  int valid;
-  list asp_list;
 };
 
 struct nbma_node
@@ -263,14 +231,6 @@ struct ospf_iface
   u32 dr_iface_id;		/* if drid is valid, this is iface_id of DR (for connecting network) */
   u8 instance_id;		/* Used to differentiate between more OSPF
 				   instances on one interface */
-#define PA_PRIORITY_MIN 1
-#define PA_PRIORITY_D 10
-#define PA_PRIORITY_MAX 255
-  u8 pa_priority;               /* Used in prefix assignment algorithm */
-  u8 pa_pxlen;                  /* Used in prefix assignment algorithm */
-  list asp_list;                /* list of struct prefix_node.
-                                   List of prefixes that have been assigned to this interface
-                                   by us from a usable prefix */
 #endif
 
   u8 type;			/* OSPF view of type */
@@ -831,10 +791,6 @@ struct proto_ospf
   elsa elsa;
 #ifdef OSPFv3
   byte dridd;                   /* Is duplicate RID detection enabled? */
-  byte pxassignment;            /* Is prefix assignment enabled? */
-  byte pxassign;                /* Prefix assignment scheduled? */
-  list usp_list;                /* list of struct prefix_node.
-                                   Usable Prefixes to be placed in our own AC LSAs */
 #endif /* OSPFv3 */
 };
 

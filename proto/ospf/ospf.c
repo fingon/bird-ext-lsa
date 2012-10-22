@@ -224,65 +224,19 @@ ospf_find_vlink(struct proto_ospf *po, u32 voa, u32 vid)
   return NULL;
 }
 
-/**
- * ospf_usp_add - Add usable prefix to protocol list
- * @po: proto_ospf to store the value in
- * @n: prefix to add
- *
- * Appends the prefix to the end of the protocol's
- * usp_list.
- */
-void
-ospf_usp_add(struct proto_ospf *po, struct prefix_node *n)
-{
-  struct proto *p = &po->proto;
-  struct prefix_node *ncopy;
-
-  OSPF_TRACE(D_EVENTS, "Adding prefix %I/%d to list of usable prefixes", n->px.addr, n->px.len);
-
-  ncopy = mb_allocz(p->pool, sizeof(struct prefix_node));
-  add_tail(&po->usp_list, NODE ncopy);
-  ncopy->px.addr = n->px.addr;
-  ncopy->px.len = n->px.len;
-  ncopy->type = n->type;
-}
-
-static void
-ospf_usp_reconfigure(struct proto_ospf *po, struct ospf_config *old, struct ospf_config *new)
-{
-  struct prefix_node *n, *n2;
-
-  WALK_LIST_DELSAFE(n, n2, po->usp_list)
-  {
-    rem_node(NODE n);
-    mb_free(n);
-  }
-  WALK_LIST(n,new->usp_list)
-  {
-    ospf_usp_add(po,n);
-  }
-}
-
 static int
 ospf_start(struct proto *p)
 {
   struct proto_ospf *po = (struct proto_ospf *) p;
   struct ospf_config *c = (struct ospf_config *) (p->cf);
   struct ospf_area_config *ac;
-  struct prefix_node *n;
 
   po->router_id = proto_get_router_id(p->cf);
   po->rid_is_random = proto_get_rid_is_random(p->cf);
 #ifdef OSPFv3
   po->dridd = c->dridd;
-  po->pxassignment = c->pxassignment;
   if(!po->dridd && po->rid_is_random)
     log(L_WARN "%s: Duplicate RID detection should be enabled when using a randomly generated RID", p->name);
-  init_list(&(po->usp_list));
-  WALK_LIST(n,c->usp_list)
-  {
-    ospf_usp_add(po,n);
-  }
   po->elsa = elsa_create(po);
 #endif /* OSPFv3 */
   po->rfc1583 = c->rfc1583;
@@ -792,9 +746,6 @@ ospf_reconfigure(struct proto *p, struct proto_config *c)
 #ifdef OSPFv3
   if(po->dridd != new->dridd)
     return 0; /* FIXME Can we reconfigure gracefully? */
-
-  /* Update usable prefix list */
-  ospf_usp_reconfigure(po, old, new);
 #endif
 
   po->ecmp = new->ecmp;
@@ -1618,73 +1569,6 @@ ospf_sh_lsadb(struct lsadb_show_data *ld)
 	    lsa->type, lsa->id, lsa->rt, lsa->age, lsa->sn, lsa->checksum);
   }
   cli_msg(0, "");
-}
-
-void
-ospf_sh_usp(struct proto *p)
-{
-#ifdef OSPFv3
-  struct proto_ospf *po = (struct proto_ospf *) p;
-  struct prefix_node *pxn;
-
-  if (p->proto_state != PS_UP)
-  {
-    cli_msg(-1020, "%s: is not up", p->name);
-    cli_msg(0, "");
-    return;
-  }
-  cli_msg(-1020, "Usable Prefixes to be advertised (may not yet be in LSADB)");
-  cli_msg(-1020, "%-20s%-39s%-15s", "Type", "Prefix", "Prefix Length");
-  WALK_LIST(pxn, po->usp_list)
-  {
-    switch(pxn->type)
-    {
-    case OSPF_USP_T_MANUAL:
-      cli_msg(-1020, "%-20s%-39I/%-14d", "Manual", pxn->px.addr, pxn->px.len);
-      break;
-    case OSPF_USP_T_DHCPV6:
-      cli_msg(-1020, "%-20s%-39I/%-14d", "DHCPv6", pxn->px.addr, pxn->px.len);
-      break;
-    default:
-      break;
-    }
-  }
-  cli_msg(-1020, "");
-
-#if 0
-
-  WALK_LIST(oa, po->area_list)
-  {
-    cli_msg(-1020, "All Usable Prefixes in reachable LSADB for area %R", oa->areaid);
-    cli_msg(-1020, "%-20s%-39s%-15s", "Advertising Router", "Prefix", "Prefix Length");
-
-    PARSE_LSA_AC_USP_START(usp,en)
-    {
-      ip_addr addr;
-      unsigned int len;
-      u8 pxopts;
-      u16 rest;
-
-      lsa_get_ipv6_prefix((u32 *)usp, &addr, &len, &pxopts, &rest);
-      cli_msg(-1020, "%-20R%-1I/%-14d", en->lsa.rt, addr, len);
-    }
-    PARSE_LSA_AC_USP_END(en);
-  }
-#endif /* 0 */
-
-  /* for debugging purposes: show our own usp_list */
-  /*WALK_LIST(n,po->usp_list)
-  {
-    cli_msg(-1020, "%-1I/%-12d", n->px.addr, n->px.len);
-  }*/
-
-  cli_msg(0, "");
-  return;
-#else /* OSPFv2 */
-  cli_msg(-1020, "Command only available for OSPFv3");
-  cli_msg(0, "");
-  return;
-#endif
 }
 
 

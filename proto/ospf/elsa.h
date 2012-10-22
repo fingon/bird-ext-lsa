@@ -4,8 +4,8 @@
  * Author: Markus Stenberg <fingon@iki.fi>
  *
  * Created:       Wed Aug  1 13:31:21 2012 mstenber
- * Last modified: Tue Oct 16 09:48:38 2012 mstenber
- * Edit time:     82 min
+ * Last modified: Mon Oct 22 13:37:30 2012 mstenber
+ * Edit time:     86 min
  *
  */
 
@@ -56,14 +56,14 @@ typedef unsigned short elsa_lsatype;
 elsa elsa_create(elsa_client client);
 
 /* Change notifications */
-void elsa_lsa_changed(elsa e, elsa_lsatype lsatype);
-void elsa_lsa_deleted(elsa e, elsa_lsatype lsatype);
+void elsa_notify_changed_lsa(elsa e, elsa_lsa lsa);
+void elsa_notify_deleting_lsa(elsa e, elsa_lsa lsa);
+
+/* Notify ELSA when duplicate LSA has been received. */
+void elsa_notify_duplicate_lsa(elsa e, elsa_lsa lsa);
 
 /* Dispatch ELSA action - should be called once a second (or so). */
 void elsa_dispatch(elsa e);
-
-/* Dispatch ELSA when duplicate LSA has been received. */
-void elsa_duplicate_lsa_dispatch(elsa e, elsa_lsa lsa);
 
 /* Destroy an ELSA instance. */
 void elsa_destroy(elsa e);
@@ -135,20 +135,7 @@ uint32_t elsai_neigh_get_rid(elsa_client client, elsa_neigh neigh);
 uint32_t elsai_neigh_get_iid(elsa_client client, elsa_neigh neigh);
 
 /* Get next neighbor (in list) */
-elsa_neigh elsai_neigh_geT_next(elsa_client client, elsa_neigh neigh);
-
-/************************************************ Configured AC USP handling */
-
-/* Get first available usable prefix */
-elsa_ac_usp elsai_ac_usp_get(elsa_client client);
-
-/* Get next available usable prefix */
-elsa_ac_usp elsai_ac_usp_get_next(elsa_client client, elsa_ac_usp usp);
-
-/* Get the prefix's contents. The result_size is the size of result in bits,
- * and result pointer itself points at the prefix data. */
-void elsai_ac_usp_get_prefix(elsa_client client, elsa_ac_usp usp,
-                             void **result, int *result_size_bits);
+elsa_neigh elsai_neigh_get_next(elsa_client client, elsa_neigh neigh);
 
 /****************************************************** Debugging / tracing  */
 
@@ -172,10 +159,6 @@ do {                                            \
 #define ELSA_DEBUG(fmt...) ELSA_LOG(ELSA_DEBUG_LEVEL_DEBUG, ##fmt)
 
 /************************************************************ 'Other stuff'  */
-
-elsa_md5 elsai_md5_init(elsa_client client);
-void elsai_md5_update(elsa_md5 md5, const unsigned char *data, int data_len);
-void elsai_md5_final(elsa_md5 md5, void *result);
 
 /* LUA cruft */
 elsa elsa_active_get(void);

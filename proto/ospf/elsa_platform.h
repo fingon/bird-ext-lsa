@@ -4,7 +4,7 @@
  * Author: Markus Stenberg <fingon@iki.fi>
  *
  * Created:       Wed Aug  1 14:09:11 2012 mstenber
- * Last modified: Fri Oct 12 13:09:40 2012 mstenber
+ * Last modified: Mon Oct 22 13:35:25 2012 mstenber
  * Edit time:     17 min
  *
  */
@@ -67,5 +67,8 @@ do {                                                            \
  } while (0)
 
 #undef net_in_net
+
+elsa_lsa elsa_platform_wrap_lsa(elsa_client client,
+                                struct top_hash_entry *lsa);
 
 #endif /* ELSA_PLATFORM_H */

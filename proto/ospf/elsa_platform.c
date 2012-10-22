@@ -4,8 +4,8 @@
  * Author: Markus Stenberg <fingon@iki.fi>
  *
  * Created:       Wed Aug  1 14:14:38 2012 mstenber
- * Last modified: Tue Oct 16 12:05:31 2012 mstenber
- * Edit time:     96 min
+ * Last modified: Mon Oct 22 13:42:02 2012 mstenber
+ * Edit time:     104 min
  *
  */
 
@@ -297,7 +297,6 @@ void elsai_lsa_originate(elsa_client client,
                          const void *body, size_t body_len)
 {
   struct ospf_lsa_header lsa;
-  bool need_ac_save;
   void *tmp;
 
   tmp = mb_alloc(client->proto.pool, body_len);
@@ -317,22 +316,12 @@ void elsai_lsa_originate(elsa_client client,
   uint32_t dom = 0;
   lsa.length = body_len + sizeof(struct ospf_lsa_header);
 
-  need_ac_save = client->elsa->need_ac;
-  client->elsa->need_ac = false;
-
-  ntohlsab(body, tmp, body_len);
+  ntohlsab((void *)body, tmp, body_len);
   lsasum_calculate(&lsa, (void *)tmp);
 
   (void)lsa_install_new(client, &lsa, dom, tmp);
 
-  /* If the AC really _did_ change, ELSA got the notification and set
-   * it's need_ac.. As this may have led to USP available changing, we
-   * may need to run the AC algorithm again. Regardless, we flood
-   * first what we have. */
-  if (client->elsa->need_ac)
-    ospf_lsupd_flood(client, NULL, NULL, &lsa, dom, 1);
-  else
-    client->elsa->need_ac = need_ac_save;
+  ospf_lsupd_flood(client, NULL, NULL, &lsa, dom, 1);
 }
 
 /*************************************************** Configured USP handling */
@@ -366,20 +355,15 @@ int elsai_get_log_level(void)
   return ELSA_DEBUG_LEVEL_DEBUG;
 }
 
+/********************************************************* Platform-specific */
 
-elsa_md5 elsai_md5_init(elsa_client client)
+elsa_lsa elsa_platform_wrap_lsa(elsa_client client,
+                                struct top_hash_entry *lsa)
 {
-  elsa_md5 ctx;
-  ctx = elsai_calloc(client, sizeof(*ctx));
-  return ctx;
-}
-
-void elsai_md5_update(elsa_md5 md5, const unsigned char *data, int data_len)
-{
-  MD5Update(md5, data, data_len);
-}
-
-void elsai_md5_final(elsa_md5 md5, void *result)
-{
-  MD5Final(result, md5);
+  int idx = client->elsa->platform.last_lsa++
+    % SUPPORTED_SIMULTANEOUS_LSA_ITERATIONS;
+  elsa_lsa l = &client->elsa->platform.lsa[idx];
+  l->swapped = false;
+  l->hash_entry = lsa;
+  return l;
 }

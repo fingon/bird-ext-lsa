@@ -8,13 +8,9 @@ OSPF=>X
  elsa = elsa_create(client)
 
 - LSA change notification (received from outside / generated internally)
- elsa_lsa_changed(lsatype)
- elsa_lsa_deleted(lsatype)
-
-[ TODO: study if computational complexity decreases much if we actually explicitly push across also information _which_ LSA changed; however, the LSA conversion might be expensive ]
-
-- is the type covered under the ELSA interface
- elsa_is_supported(lsatype)
+ elsa_notify_changed_lsa(lsa)
+ elsa_notify_deleting_lsa(lsa)
+ elsa_notify_duplicate_lsa(lsa)
 
 - dispatch (to provide access to event loop)
  elsa_dispatch()
@@ -38,12 +34,6 @@ X=>OSPF
 
  lsa = elsai_get_lsa_by_type_rid(client, type, rid)
  lsa = elsai_get_lsa_by_type_rid_next(client, lsa)
-
-- add LSA (=~ add+originate)
- elsai_add_lsa(client, lsa)
-
-- remove originated LSA
- elsai_delete_lsa(client, lsa)
 
 Look at what the structures look like under Quagga + BIRD
 ---------------------------------------------------------

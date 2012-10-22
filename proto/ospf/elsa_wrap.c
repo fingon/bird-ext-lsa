@@ -1493,20 +1493,18 @@ SWIG_Lua_dostring(lua_State *L, const char* str) {
 
 #define SWIGTYPE_p_elsa_lsa_struct swig_types[0]
 #define SWIGTYPE_p_elsa_struct swig_types[1]
-#define SWIGTYPE_p_elsa_usp_struct swig_types[2]
-#define SWIGTYPE_p_int swig_types[3]
-#define SWIGTYPE_p_ospf_iface swig_types[4]
-#define SWIGTYPE_p_ospf_neighbor swig_types[5]
-#define SWIGTYPE_p_p_char swig_types[6]
-#define SWIGTYPE_p_p_unsigned_char swig_types[7]
-#define SWIGTYPE_p_p_void swig_types[8]
-#define SWIGTYPE_p_proto_ospf swig_types[9]
-#define SWIGTYPE_p_size_t swig_types[10]
-#define SWIGTYPE_p_unsigned_char swig_types[11]
-#define SWIGTYPE_p_unsigned_int swig_types[12]
-#define SWIGTYPE_p_unsigned_short swig_types[13]
-static swig_type_info *swig_types[15];
-static swig_module_info swig_module = {swig_types, 14, 0, 0, 0, 0};
+#define SWIGTYPE_p_ospf_iface swig_types[2]
+#define SWIGTYPE_p_ospf_neighbor swig_types[3]
+#define SWIGTYPE_p_p_char swig_types[4]
+#define SWIGTYPE_p_p_unsigned_char swig_types[5]
+#define SWIGTYPE_p_proto_ospf swig_types[6]
+#define SWIGTYPE_p_size_t swig_types[7]
+#define SWIGTYPE_p_unsigned_char swig_types[8]
+#define SWIGTYPE_p_unsigned_int swig_types[9]
+#define SWIGTYPE_p_unsigned_short swig_types[10]
+#define SWIGTYPE_p_void swig_types[11]
+static swig_type_info *swig_types[13];
+static swig_module_info swig_module = {swig_types, 12, 0, 0, 0, 0};
 #define SWIG_TypeQuery(name) SWIG_TypeQueryModule(&swig_module, &swig_module, name)
 #define SWIG_MangledTypeQuery(name) SWIG_MangledTypeQueryModule(&swig_module, &swig_module, name)
 
@@ -1744,156 +1742,6 @@ fail:
 }
 
 
-static int _wrap_elsa_struct_note_address_add_failures_set(lua_State* L) {
-  int SWIG_arg = 0;
-  struct elsa_struct *arg1 = (struct elsa_struct *) 0 ;
-  bool arg2 ;
-  
-  SWIG_check_num_args("elsa_struct::note_address_add_failures",2,2)
-  if(!SWIG_isptrtype(L,1)) SWIG_fail_arg("elsa_struct::note_address_add_failures",1,"struct elsa_struct *");
-  if(!lua_isboolean(L,2)) SWIG_fail_arg("elsa_struct::note_address_add_failures",2,"bool");
-  
-  if (!SWIG_IsOK(SWIG_ConvertPtr(L,1,(void**)&arg1,SWIGTYPE_p_elsa_struct,0))){
-    SWIG_fail_ptr("elsa_struct_note_address_add_failures_set",1,SWIGTYPE_p_elsa_struct);
-  }
-  
-  arg2 = (lua_toboolean(L, 2)!=0);
-  if (arg1) (arg1)->note_address_add_failures = arg2;
-  
-  return SWIG_arg;
-  
-  if(0) SWIG_fail;
-  
-fail:
-  lua_error(L);
-  return SWIG_arg;
-}
-
-
-static int _wrap_elsa_struct_note_address_add_failures_get(lua_State* L) {
-  int SWIG_arg = 0;
-  struct elsa_struct *arg1 = (struct elsa_struct *) 0 ;
-  bool result;
-  
-  SWIG_check_num_args("elsa_struct::note_address_add_failures",1,1)
-  if(!SWIG_isptrtype(L,1)) SWIG_fail_arg("elsa_struct::note_address_add_failures",1,"struct elsa_struct *");
-  
-  if (!SWIG_IsOK(SWIG_ConvertPtr(L,1,(void**)&arg1,SWIGTYPE_p_elsa_struct,0))){
-    SWIG_fail_ptr("elsa_struct_note_address_add_failures_get",1,SWIGTYPE_p_elsa_struct);
-  }
-  
-  result = (bool) ((arg1)->note_address_add_failures);
-  lua_pushboolean(L,(int)(result!=0)); SWIG_arg++;
-  return SWIG_arg;
-  
-  if(0) SWIG_fail;
-  
-fail:
-  lua_error(L);
-  return SWIG_arg;
-}
-
-
-static int _wrap_elsa_struct_need_ac_set(lua_State* L) {
-  int SWIG_arg = 0;
-  struct elsa_struct *arg1 = (struct elsa_struct *) 0 ;
-  bool arg2 ;
-  
-  SWIG_check_num_args("elsa_struct::need_ac",2,2)
-  if(!SWIG_isptrtype(L,1)) SWIG_fail_arg("elsa_struct::need_ac",1,"struct elsa_struct *");
-  if(!lua_isboolean(L,2)) SWIG_fail_arg("elsa_struct::need_ac",2,"bool");
-  
-  if (!SWIG_IsOK(SWIG_ConvertPtr(L,1,(void**)&arg1,SWIGTYPE_p_elsa_struct,0))){
-    SWIG_fail_ptr("elsa_struct_need_ac_set",1,SWIGTYPE_p_elsa_struct);
-  }
-  
-  arg2 = (lua_toboolean(L, 2)!=0);
-  if (arg1) (arg1)->need_ac = arg2;
-  
-  return SWIG_arg;
-  
-  if(0) SWIG_fail;
-  
-fail:
-  lua_error(L);
-  return SWIG_arg;
-}
-
-
-static int _wrap_elsa_struct_need_ac_get(lua_State* L) {
-  int SWIG_arg = 0;
-  struct elsa_struct *arg1 = (struct elsa_struct *) 0 ;
-  bool result;
-  
-  SWIG_check_num_args("elsa_struct::need_ac",1,1)
-  if(!SWIG_isptrtype(L,1)) SWIG_fail_arg("elsa_struct::need_ac",1,"struct elsa_struct *");
-  
-  if (!SWIG_IsOK(SWIG_ConvertPtr(L,1,(void**)&arg1,SWIGTYPE_p_elsa_struct,0))){
-    SWIG_fail_ptr("elsa_struct_need_ac_get",1,SWIGTYPE_p_elsa_struct);
-  }
-  
-  result = (bool) ((arg1)->need_ac);
-  lua_pushboolean(L,(int)(result!=0)); SWIG_arg++;
-  return SWIG_arg;
-  
-  if(0) SWIG_fail;
-  
-fail:
-  lua_error(L);
-  return SWIG_arg;
-}
-
-
-static int _wrap_elsa_struct_need_originate_ac_set(lua_State* L) {
-  int SWIG_arg = 0;
-  struct elsa_struct *arg1 = (struct elsa_struct *) 0 ;
-  bool arg2 ;
-  
-  SWIG_check_num_args("elsa_struct::need_originate_ac",2,2)
-  if(!SWIG_isptrtype(L,1)) SWIG_fail_arg("elsa_struct::need_originate_ac",1,"struct elsa_struct *");
-  if(!lua_isboolean(L,2)) SWIG_fail_arg("elsa_struct::need_originate_ac",2,"bool");
-  
-  if (!SWIG_IsOK(SWIG_ConvertPtr(L,1,(void**)&arg1,SWIGTYPE_p_elsa_struct,0))){
-    SWIG_fail_ptr("elsa_struct_need_originate_ac_set",1,SWIGTYPE_p_elsa_struct);
-  }
-  
-  arg2 = (lua_toboolean(L, 2)!=0);
-  if (arg1) (arg1)->need_originate_ac = arg2;
-  
-  return SWIG_arg;
-  
-  if(0) SWIG_fail;
-  
-fail:
-  lua_error(L);
-  return SWIG_arg;
-}
-
-
-static int _wrap_elsa_struct_need_originate_ac_get(lua_State* L) {
-  int SWIG_arg = 0;
-  struct elsa_struct *arg1 = (struct elsa_struct *) 0 ;
-  bool result;
-  
-  SWIG_check_num_args("elsa_struct::need_originate_ac",1,1)
-  if(!SWIG_isptrtype(L,1)) SWIG_fail_arg("elsa_struct::need_originate_ac",1,"struct elsa_struct *");
-  
-  if (!SWIG_IsOK(SWIG_ConvertPtr(L,1,(void**)&arg1,SWIGTYPE_p_elsa_struct,0))){
-    SWIG_fail_ptr("elsa_struct_need_originate_ac_get",1,SWIGTYPE_p_elsa_struct);
-  }
-  
-  result = (bool) ((arg1)->need_originate_ac);
-  lua_pushboolean(L,(int)(result!=0)); SWIG_arg++;
-  return SWIG_arg;
-  
-  if(0) SWIG_fail;
-  
-fail:
-  lua_error(L);
-  return SWIG_arg;
-}
-
-
 static int _wrap_new_elsa_struct(lua_State* L) {
   int SWIG_arg = 0;
   struct elsa_struct *result = 0 ;
@@ -1920,14 +1768,225 @@ static swig_lua_method swig_elsa_struct_methods[] = {
 };
 static swig_lua_attribute swig_elsa_struct_attributes[] = {
     { "client", _wrap_elsa_struct_client_get, _wrap_elsa_struct_client_set},
-    { "note_address_add_failures", _wrap_elsa_struct_note_address_add_failures_get, _wrap_elsa_struct_note_address_add_failures_set},
-    { "need_ac", _wrap_elsa_struct_need_ac_get, _wrap_elsa_struct_need_ac_set},
-    { "need_originate_ac", _wrap_elsa_struct_need_originate_ac_get, _wrap_elsa_struct_need_originate_ac_set},
     {0,0,0}
 };
 static swig_lua_class *swig_elsa_struct_bases[] = {0};
 static const char *swig_elsa_struct_base_names[] = {0};
 static swig_lua_class _wrap_class_elsa_struct = { "elsa_struct", &SWIGTYPE_p_elsa_struct,_wrap_new_elsa_struct, swig_delete_elsa_struct, swig_elsa_struct_methods, swig_elsa_struct_attributes, swig_elsa_struct_bases, swig_elsa_struct_base_names };
+
+static int _wrap_elsa_create(lua_State* L) {
+  int SWIG_arg = 0;
+  elsa_client arg1 = (elsa_client) 0 ;
+  elsa result;
+  
+  SWIG_check_num_args("elsa_create",1,1)
+  if(!SWIG_isptrtype(L,1)) SWIG_fail_arg("elsa_create",1,"elsa_client");
+  
+  if (!SWIG_IsOK(SWIG_ConvertPtr(L,1,(void**)&arg1,SWIGTYPE_p_proto_ospf,0))){
+    SWIG_fail_ptr("elsa_create",1,SWIGTYPE_p_proto_ospf);
+  }
+  
+  result = (elsa)elsa_create(arg1);
+  SWIG_NewPointerObj(L,result,SWIGTYPE_p_elsa_struct,0); SWIG_arg++; 
+  return SWIG_arg;
+  
+  if(0) SWIG_fail;
+  
+fail:
+  lua_error(L);
+  return SWIG_arg;
+}
+
+
+static int _wrap_elsa_notify_changed_lsa(lua_State* L) {
+  int SWIG_arg = 0;
+  elsa arg1 = (elsa) 0 ;
+  elsa_lsa arg2 = (elsa_lsa) 0 ;
+  
+  SWIG_check_num_args("elsa_notify_changed_lsa",2,2)
+  if(!SWIG_isptrtype(L,1)) SWIG_fail_arg("elsa_notify_changed_lsa",1,"elsa");
+  if(!SWIG_isptrtype(L,2)) SWIG_fail_arg("elsa_notify_changed_lsa",2,"elsa_lsa");
+  
+  if (!SWIG_IsOK(SWIG_ConvertPtr(L,1,(void**)&arg1,SWIGTYPE_p_elsa_struct,0))){
+    SWIG_fail_ptr("elsa_notify_changed_lsa",1,SWIGTYPE_p_elsa_struct);
+  }
+  
+  
+  if (!SWIG_IsOK(SWIG_ConvertPtr(L,2,(void**)&arg2,SWIGTYPE_p_elsa_lsa_struct,0))){
+    SWIG_fail_ptr("elsa_notify_changed_lsa",2,SWIGTYPE_p_elsa_lsa_struct);
+  }
+  
+  elsa_notify_changed_lsa(arg1,arg2);
+  
+  return SWIG_arg;
+  
+  if(0) SWIG_fail;
+  
+fail:
+  lua_error(L);
+  return SWIG_arg;
+}
+
+
+static int _wrap_elsa_notify_deleting_lsa(lua_State* L) {
+  int SWIG_arg = 0;
+  elsa arg1 = (elsa) 0 ;
+  elsa_lsa arg2 = (elsa_lsa) 0 ;
+  
+  SWIG_check_num_args("elsa_notify_deleting_lsa",2,2)
+  if(!SWIG_isptrtype(L,1)) SWIG_fail_arg("elsa_notify_deleting_lsa",1,"elsa");
+  if(!SWIG_isptrtype(L,2)) SWIG_fail_arg("elsa_notify_deleting_lsa",2,"elsa_lsa");
+  
+  if (!SWIG_IsOK(SWIG_ConvertPtr(L,1,(void**)&arg1,SWIGTYPE_p_elsa_struct,0))){
+    SWIG_fail_ptr("elsa_notify_deleting_lsa",1,SWIGTYPE_p_elsa_struct);
+  }
+  
+  
+  if (!SWIG_IsOK(SWIG_ConvertPtr(L,2,(void**)&arg2,SWIGTYPE_p_elsa_lsa_struct,0))){
+    SWIG_fail_ptr("elsa_notify_deleting_lsa",2,SWIGTYPE_p_elsa_lsa_struct);
+  }
+  
+  elsa_notify_deleting_lsa(arg1,arg2);
+  
+  return SWIG_arg;
+  
+  if(0) SWIG_fail;
+  
+fail:
+  lua_error(L);
+  return SWIG_arg;
+}
+
+
+static int _wrap_elsa_notify_duplicate_lsa(lua_State* L) {
+  int SWIG_arg = 0;
+  elsa arg1 = (elsa) 0 ;
+  elsa_lsa arg2 = (elsa_lsa) 0 ;
+  
+  SWIG_check_num_args("elsa_notify_duplicate_lsa",2,2)
+  if(!SWIG_isptrtype(L,1)) SWIG_fail_arg("elsa_notify_duplicate_lsa",1,"elsa");
+  if(!SWIG_isptrtype(L,2)) SWIG_fail_arg("elsa_notify_duplicate_lsa",2,"elsa_lsa");
+  
+  if (!SWIG_IsOK(SWIG_ConvertPtr(L,1,(void**)&arg1,SWIGTYPE_p_elsa_struct,0))){
+    SWIG_fail_ptr("elsa_notify_duplicate_lsa",1,SWIGTYPE_p_elsa_struct);
+  }
+  
+  
+  if (!SWIG_IsOK(SWIG_ConvertPtr(L,2,(void**)&arg2,SWIGTYPE_p_elsa_lsa_struct,0))){
+    SWIG_fail_ptr("elsa_notify_duplicate_lsa",2,SWIGTYPE_p_elsa_lsa_struct);
+  }
+  
+  elsa_notify_duplicate_lsa(arg1,arg2);
+  
+  return SWIG_arg;
+  
+  if(0) SWIG_fail;
+  
+fail:
+  lua_error(L);
+  return SWIG_arg;
+}
+
+
+static int _wrap_elsa_dispatch(lua_State* L) {
+  int SWIG_arg = 0;
+  elsa arg1 = (elsa) 0 ;
+  
+  SWIG_check_num_args("elsa_dispatch",1,1)
+  if(!SWIG_isptrtype(L,1)) SWIG_fail_arg("elsa_dispatch",1,"elsa");
+  
+  if (!SWIG_IsOK(SWIG_ConvertPtr(L,1,(void**)&arg1,SWIGTYPE_p_elsa_struct,0))){
+    SWIG_fail_ptr("elsa_dispatch",1,SWIGTYPE_p_elsa_struct);
+  }
+  
+  elsa_dispatch(arg1);
+  
+  return SWIG_arg;
+  
+  if(0) SWIG_fail;
+  
+fail:
+  lua_error(L);
+  return SWIG_arg;
+}
+
+
+static int _wrap_elsa_destroy(lua_State* L) {
+  int SWIG_arg = 0;
+  elsa arg1 = (elsa) 0 ;
+  
+  SWIG_check_num_args("elsa_destroy",1,1)
+  if(!SWIG_isptrtype(L,1)) SWIG_fail_arg("elsa_destroy",1,"elsa");
+  
+  if (!SWIG_IsOK(SWIG_ConvertPtr(L,1,(void**)&arg1,SWIGTYPE_p_elsa_struct,0))){
+    SWIG_fail_ptr("elsa_destroy",1,SWIGTYPE_p_elsa_struct);
+  }
+  
+  elsa_destroy(arg1);
+  
+  return SWIG_arg;
+  
+  if(0) SWIG_fail;
+  
+fail:
+  lua_error(L);
+  return SWIG_arg;
+}
+
+
+static int _wrap_elsai_calloc(lua_State* L) {
+  int SWIG_arg = 0;
+  elsa_client arg1 = (elsa_client) 0 ;
+  size_t arg2 ;
+  void *result = 0 ;
+  
+  SWIG_check_num_args("elsai_calloc",2,2)
+  if(!SWIG_isptrtype(L,1)) SWIG_fail_arg("elsai_calloc",1,"elsa_client");
+  if(!lua_isnumber(L,2)) SWIG_fail_arg("elsai_calloc",2,"size_t");
+  
+  if (!SWIG_IsOK(SWIG_ConvertPtr(L,1,(void**)&arg1,SWIGTYPE_p_proto_ospf,0))){
+    SWIG_fail_ptr("elsai_calloc",1,SWIGTYPE_p_proto_ospf);
+  }
+  
+  SWIG_contract_assert((lua_tonumber(L,2)>=0),"number must not be negative")
+  arg2 = (size_t)lua_tonumber(L, 2);
+  result = (void *)elsai_calloc(arg1,arg2);
+  SWIG_NewPointerObj(L,result,SWIGTYPE_p_void,0); SWIG_arg++; 
+  return SWIG_arg;
+  
+  if(0) SWIG_fail;
+  
+fail:
+  lua_error(L);
+  return SWIG_arg;
+}
+
+
+static int _wrap_elsai_free(lua_State* L) {
+  int SWIG_arg = 0;
+  elsa_client arg1 = (elsa_client) 0 ;
+  void *arg2 = (void *) 0 ;
+  
+  SWIG_check_num_args("elsai_free",2,2)
+  if(!SWIG_isptrtype(L,1)) SWIG_fail_arg("elsai_free",1,"elsa_client");
+  if(!SWIG_isptrtype(L,2)) SWIG_fail_arg("elsai_free",2,"void *");
+  
+  if (!SWIG_IsOK(SWIG_ConvertPtr(L,1,(void**)&arg1,SWIGTYPE_p_proto_ospf,0))){
+    SWIG_fail_ptr("elsai_free",1,SWIGTYPE_p_proto_ospf);
+  }
+  
+  arg2=(void *)SWIG_MustGetPtr(L,2,0,0,2,"elsai_free");
+  elsai_free(arg1,arg2);
+  
+  return SWIG_arg;
+  
+  if(0) SWIG_fail;
+  
+fail:
+  lua_error(L);
+  return SWIG_arg;
+}
+
 
 static int _wrap_elsai_get_rid(lua_State* L) {
   int SWIG_arg = 0;
@@ -2024,14 +2083,16 @@ static int _wrap_elsai_lsa_originate(lua_State* L) {
   elsa_lsatype arg2 ;
   uint32_t arg3 ;
   uint32_t arg4 ;
-  unsigned char *arg5 = (unsigned char *) 0 ;
+  void *arg5 = (void *) 0 ;
   size_t arg6 ;
   
-  SWIG_check_num_args("elsai_lsa_originate",5,5)
+  SWIG_check_num_args("elsai_lsa_originate",6,6)
   if(!SWIG_isptrtype(L,1)) SWIG_fail_arg("elsai_lsa_originate",1,"elsa_client");
   if(!lua_isnumber(L,2)) SWIG_fail_arg("elsai_lsa_originate",2,"elsa_lsatype");
   if(!lua_isnumber(L,3)) SWIG_fail_arg("elsai_lsa_originate",3,"uint32_t");
   if(!lua_isnumber(L,4)) SWIG_fail_arg("elsai_lsa_originate",4,"uint32_t");
+  if(!SWIG_isptrtype(L,5)) SWIG_fail_arg("elsai_lsa_originate",5,"void const *");
+  if(!lua_isnumber(L,6)) SWIG_fail_arg("elsai_lsa_originate",6,"size_t");
   
   if (!SWIG_IsOK(SWIG_ConvertPtr(L,1,(void**)&arg1,SWIGTYPE_p_proto_ospf,0))){
     SWIG_fail_ptr("elsai_lsa_originate",1,SWIGTYPE_p_proto_ospf);
@@ -2043,11 +2104,10 @@ static int _wrap_elsai_lsa_originate(lua_State* L) {
   arg3 = (uint32_t)lua_tonumber(L, 3);
   SWIG_contract_assert((lua_tonumber(L,4)>=0),"number must not be negative")
   arg4 = (uint32_t)lua_tonumber(L, 4);
-  {
-    if(!lua_isstring(L,5)) SWIG_fail_arg("???",5,"<lua string>");
-    arg5 = (unsigned char *)lua_tolstring(L, 5, &arg6);
-  }
-  elsai_lsa_originate(arg1,arg2,arg3,arg4,(unsigned char const *)arg5,arg6);
+  arg5=(void *)SWIG_MustGetPtr(L,5,0,0,5,"elsai_lsa_originate");
+  SWIG_contract_assert((lua_tonumber(L,6)>=0),"number must not be negative")
+  arg6 = (size_t)lua_tonumber(L, 6);
+  elsai_lsa_originate(arg1,arg2,arg3,arg4,(void const *)arg5,arg6);
   
   return SWIG_arg;
   
@@ -2496,95 +2556,13 @@ fail:
 }
 
 
-static int _wrap_elsai_ac_usp_get(lua_State* L) {
+static int _wrap_elsai_get_log_level(lua_State* L) {
   int SWIG_arg = 0;
-  elsa_client arg1 = (elsa_client) 0 ;
-  elsa_ac_usp result;
+  int result;
   
-  SWIG_check_num_args("elsai_ac_usp_get",1,1)
-  if(!SWIG_isptrtype(L,1)) SWIG_fail_arg("elsai_ac_usp_get",1,"elsa_client");
-  
-  if (!SWIG_IsOK(SWIG_ConvertPtr(L,1,(void**)&arg1,SWIGTYPE_p_proto_ospf,0))){
-    SWIG_fail_ptr("elsai_ac_usp_get",1,SWIGTYPE_p_proto_ospf);
-  }
-  
-  result = (elsa_ac_usp)elsai_ac_usp_get(arg1);
-  SWIG_NewPointerObj(L,result,SWIGTYPE_p_elsa_usp_struct,0); SWIG_arg++; 
-  return SWIG_arg;
-  
-  if(0) SWIG_fail;
-  
-fail:
-  lua_error(L);
-  return SWIG_arg;
-}
-
-
-static int _wrap_elsai_ac_usp_get_next(lua_State* L) {
-  int SWIG_arg = 0;
-  elsa_client arg1 = (elsa_client) 0 ;
-  elsa_ac_usp arg2 = (elsa_ac_usp) 0 ;
-  elsa_ac_usp result;
-  
-  SWIG_check_num_args("elsai_ac_usp_get_next",2,2)
-  if(!SWIG_isptrtype(L,1)) SWIG_fail_arg("elsai_ac_usp_get_next",1,"elsa_client");
-  if(!SWIG_isptrtype(L,2)) SWIG_fail_arg("elsai_ac_usp_get_next",2,"elsa_ac_usp");
-  
-  if (!SWIG_IsOK(SWIG_ConvertPtr(L,1,(void**)&arg1,SWIGTYPE_p_proto_ospf,0))){
-    SWIG_fail_ptr("elsai_ac_usp_get_next",1,SWIGTYPE_p_proto_ospf);
-  }
-  
-  
-  if (!SWIG_IsOK(SWIG_ConvertPtr(L,2,(void**)&arg2,SWIGTYPE_p_elsa_usp_struct,0))){
-    SWIG_fail_ptr("elsai_ac_usp_get_next",2,SWIGTYPE_p_elsa_usp_struct);
-  }
-  
-  result = (elsa_ac_usp)elsai_ac_usp_get_next(arg1,arg2);
-  SWIG_NewPointerObj(L,result,SWIGTYPE_p_elsa_usp_struct,0); SWIG_arg++; 
-  return SWIG_arg;
-  
-  if(0) SWIG_fail;
-  
-fail:
-  lua_error(L);
-  return SWIG_arg;
-}
-
-
-static int _wrap_elsai_ac_usp_get_prefix(lua_State* L) {
-  int SWIG_arg = 0;
-  elsa_client arg1 = (elsa_client) 0 ;
-  elsa_ac_usp arg2 = (elsa_ac_usp) 0 ;
-  void **arg3 = (void **) 0 ;
-  int *arg4 = (int *) 0 ;
-  
-  SWIG_check_num_args("elsai_ac_usp_get_prefix",4,4)
-  if(!SWIG_isptrtype(L,1)) SWIG_fail_arg("elsai_ac_usp_get_prefix",1,"elsa_client");
-  if(!SWIG_isptrtype(L,2)) SWIG_fail_arg("elsai_ac_usp_get_prefix",2,"elsa_ac_usp");
-  if(!SWIG_isptrtype(L,3)) SWIG_fail_arg("elsai_ac_usp_get_prefix",3,"void **");
-  if(!SWIG_isptrtype(L,4)) SWIG_fail_arg("elsai_ac_usp_get_prefix",4,"int *");
-  
-  if (!SWIG_IsOK(SWIG_ConvertPtr(L,1,(void**)&arg1,SWIGTYPE_p_proto_ospf,0))){
-    SWIG_fail_ptr("elsai_ac_usp_get_prefix",1,SWIGTYPE_p_proto_ospf);
-  }
-  
-  
-  if (!SWIG_IsOK(SWIG_ConvertPtr(L,2,(void**)&arg2,SWIGTYPE_p_elsa_usp_struct,0))){
-    SWIG_fail_ptr("elsai_ac_usp_get_prefix",2,SWIGTYPE_p_elsa_usp_struct);
-  }
-  
-  
-  if (!SWIG_IsOK(SWIG_ConvertPtr(L,3,(void**)&arg3,SWIGTYPE_p_p_void,0))){
-    SWIG_fail_ptr("elsai_ac_usp_get_prefix",3,SWIGTYPE_p_p_void);
-  }
-  
-  
-  if (!SWIG_IsOK(SWIG_ConvertPtr(L,4,(void**)&arg4,SWIGTYPE_p_int,0))){
-    SWIG_fail_ptr("elsai_ac_usp_get_prefix",4,SWIGTYPE_p_int);
-  }
-  
-  elsai_ac_usp_get_prefix(arg1,arg2,arg3,arg4);
-  
+  SWIG_check_num_args("elsai_get_log_level",0,0)
+  result = (int)elsai_get_log_level();
+  lua_pushnumber(L, (lua_Number) result); SWIG_arg++;
   return SWIG_arg;
   
   if(0) SWIG_fail;
@@ -2653,6 +2631,14 @@ fail:
 #endif
 
 static const struct luaL_reg swig_commands[] = {
+    { "elsa_create", _wrap_elsa_create},
+    { "elsa_notify_changed_lsa", _wrap_elsa_notify_changed_lsa},
+    { "elsa_notify_deleting_lsa", _wrap_elsa_notify_deleting_lsa},
+    { "elsa_notify_duplicate_lsa", _wrap_elsa_notify_duplicate_lsa},
+    { "elsa_dispatch", _wrap_elsa_dispatch},
+    { "elsa_destroy", _wrap_elsa_destroy},
+    { "elsai_calloc", _wrap_elsai_calloc},
+    { "elsai_free", _wrap_elsai_free},
     { "elsai_get_rid", _wrap_elsai_get_rid},
     { "elsai_change_rid", _wrap_elsai_change_rid},
     { "elsai_route_to_rid", _wrap_elsai_route_to_rid},
@@ -2672,9 +2658,7 @@ static const struct luaL_reg swig_commands[] = {
     { "elsai_neigh_get_rid", _wrap_elsai_neigh_get_rid},
     { "elsai_neigh_get_iid", _wrap_elsai_neigh_get_iid},
     { "elsai_neigh_get_next", _wrap_elsai_neigh_get_next},
-    { "elsai_ac_usp_get", _wrap_elsai_ac_usp_get},
-    { "elsai_ac_usp_get_next", _wrap_elsai_ac_usp_get_next},
-    { "elsai_ac_usp_get_prefix", _wrap_elsai_ac_usp_get_prefix},
+    { "elsai_get_log_level", _wrap_elsai_get_log_level},
     { "elsa_active_get", _wrap_elsa_active_get},
     { "elsa_active_lsa_get", _wrap_elsa_active_lsa_get},
     { "elsa_log_string", _wrap_elsa_log_string},
@@ -2694,6 +2678,9 @@ static swig_lua_const_info swig_constants[] = {
 { SWIG_LUA_INT,     (char *)"LSA_T_NSSA", (long) 0x2007, 0, 0, 0},
 { SWIG_LUA_INT,     (char *)"LSA_T_LINK", (long) 0x0008, 0, 0, 0},
 { SWIG_LUA_INT,     (char *)"LSA_T_PREFIX", (long) 0x2009, 0, 0, 0},
+{ SWIG_LUA_INT,     (char *)"ELSA_DEBUG_LEVEL_ERROR", (long) 1, 0, 0, 0},
+{ SWIG_LUA_INT,     (char *)"ELSA_DEBUG_LEVEL_INFO", (long) 2, 0, 0, 0},
+{ SWIG_LUA_INT,     (char *)"ELSA_DEBUG_LEVEL_DEBUG", (long) 3, 0, 0, 0},
     {0,0,0,0,0,0}
 };
 
@@ -2701,66 +2688,58 @@ static swig_lua_const_info swig_constants[] = {
 
 static swig_type_info _swigt__p_elsa_lsa_struct = {"_p_elsa_lsa_struct", "elsa_lsa|struct elsa_lsa_struct *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_elsa_struct = {"_p_elsa_struct", "struct elsa_struct *|elsa_struct *|elsa", 0, 0, (void*)&_wrap_class_elsa_struct, 0};
-static swig_type_info _swigt__p_elsa_usp_struct = {"_p_elsa_usp_struct", "elsa_ac_usp|struct elsa_usp_struct *", 0, 0, (void*)0, 0};
-static swig_type_info _swigt__p_int = {"_p_int", "int *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_ospf_iface = {"_p_ospf_iface", "struct ospf_iface *|elsa_if", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_ospf_neighbor = {"_p_ospf_neighbor", "struct ospf_neighbor *|elsa_neigh", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_char = {"_p_p_char", "char **", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_unsigned_char = {"_p_p_unsigned_char", "unsigned char **", 0, 0, (void*)0, 0};
-static swig_type_info _swigt__p_p_void = {"_p_p_void", "void **", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_proto_ospf = {"_p_proto_ospf", "struct proto_ospf *|elsa_client", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_size_t = {"_p_size_t", "size_t *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_unsigned_char = {"_p_unsigned_char", "unsigned char *|uint8_t *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_unsigned_int = {"_p_unsigned_int", "uint32_t *|unsigned int *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_unsigned_short = {"_p_unsigned_short", "elsa_lsatype *|unsigned short *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_void = {"_p_void", "void *", 0, 0, (void*)0, 0};
 
 static swig_type_info *swig_type_initial[] = {
   &_swigt__p_elsa_lsa_struct,
   &_swigt__p_elsa_struct,
-  &_swigt__p_elsa_usp_struct,
-  &_swigt__p_int,
   &_swigt__p_ospf_iface,
   &_swigt__p_ospf_neighbor,
   &_swigt__p_p_char,
   &_swigt__p_p_unsigned_char,
-  &_swigt__p_p_void,
   &_swigt__p_proto_ospf,
   &_swigt__p_size_t,
   &_swigt__p_unsigned_char,
   &_swigt__p_unsigned_int,
   &_swigt__p_unsigned_short,
+  &_swigt__p_void,
 };
 
 static swig_cast_info _swigc__p_elsa_lsa_struct[] = {  {&_swigt__p_elsa_lsa_struct, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_elsa_struct[] = {  {&_swigt__p_elsa_struct, 0, 0, 0},{0, 0, 0, 0}};
-static swig_cast_info _swigc__p_elsa_usp_struct[] = {  {&_swigt__p_elsa_usp_struct, 0, 0, 0},{0, 0, 0, 0}};
-static swig_cast_info _swigc__p_int[] = {  {&_swigt__p_int, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_ospf_iface[] = {  {&_swigt__p_ospf_iface, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_ospf_neighbor[] = {  {&_swigt__p_ospf_neighbor, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_p_char[] = {  {&_swigt__p_p_char, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_p_unsigned_char[] = {  {&_swigt__p_p_unsigned_char, 0, 0, 0},{0, 0, 0, 0}};
-static swig_cast_info _swigc__p_p_void[] = {  {&_swigt__p_p_void, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_proto_ospf[] = {  {&_swigt__p_proto_ospf, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_size_t[] = {  {&_swigt__p_size_t, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_unsigned_char[] = {  {&_swigt__p_unsigned_char, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_unsigned_int[] = {  {&_swigt__p_unsigned_int, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_unsigned_short[] = {  {&_swigt__p_unsigned_short, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_void[] = {  {&_swigt__p_void, 0, 0, 0},{0, 0, 0, 0}};
 
 static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_elsa_lsa_struct,
   _swigc__p_elsa_struct,
-  _swigc__p_elsa_usp_struct,
-  _swigc__p_int,
   _swigc__p_ospf_iface,
   _swigc__p_ospf_neighbor,
   _swigc__p_p_char,
   _swigc__p_p_unsigned_char,
-  _swigc__p_p_void,
   _swigc__p_proto_ospf,
   _swigc__p_size_t,
   _swigc__p_unsigned_char,
   _swigc__p_unsigned_int,
   _swigc__p_unsigned_short,
+  _swigc__p_void,
 };
 
 
