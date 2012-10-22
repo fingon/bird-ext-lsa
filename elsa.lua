@@ -9,8 +9,8 @@
 --       All rights reserved
 --
 -- Created:       Wed Sep 26 23:01:06 2012 mstenber
--- Last modified: Mon Oct 22 13:18:22 2012 mstenber
--- Edit time:     135 min
+-- Last modified: Mon Oct 22 14:24:02 2012 mstenber
+-- Edit time:     139 min
 --
 
 require 'mst'
@@ -274,6 +274,40 @@ function elsa_notify_duplicate_lsa()
                    end
                    epa:check_conflict(lsa)
                 end)
+end
+
+function elsa_notify_changed_lsa()
+   mst.d_xpcall(function ()
+                   local epa = get_elsa_pa()
+                   local lsa = wrap_lsa(elsac.elsa_active_lsa_get())
+
+                   -- other LSAs we can't do anything about anyway
+                   if lsa.type ~= elsa_pa.AC_TYPE
+                   then
+                      return
+                   end
+
+                   mst.d('changed AC - XXX')
+                end)
+
+end
+
+function elsa_notify_deleting_lsa()
+   mst.d_xpcall(function ()
+                   local epa = get_elsa_pa()
+                   local lsa = wrap_lsa(elsac.elsa_active_lsa_get())
+
+                   mst.d('entered elsa_notify_deleting_lsa')
+
+                   -- other LSAs we can't do anything about anyway
+                   if lsa.type ~= elsa_pa.AC_TYPE
+                   then
+                      return
+                   end
+
+                   mst.d('deleting AC - XXX')
+                end)
+
 end
 
 -- capture the io.stdout/stderr

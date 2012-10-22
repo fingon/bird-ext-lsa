@@ -2083,16 +2083,14 @@ static int _wrap_elsai_lsa_originate(lua_State* L) {
   elsa_lsatype arg2 ;
   uint32_t arg3 ;
   uint32_t arg4 ;
-  void *arg5 = (void *) 0 ;
+  unsigned char *arg5 = (unsigned char *) 0 ;
   size_t arg6 ;
   
-  SWIG_check_num_args("elsai_lsa_originate",6,6)
+  SWIG_check_num_args("elsai_lsa_originate",5,5)
   if(!SWIG_isptrtype(L,1)) SWIG_fail_arg("elsai_lsa_originate",1,"elsa_client");
   if(!lua_isnumber(L,2)) SWIG_fail_arg("elsai_lsa_originate",2,"elsa_lsatype");
   if(!lua_isnumber(L,3)) SWIG_fail_arg("elsai_lsa_originate",3,"uint32_t");
   if(!lua_isnumber(L,4)) SWIG_fail_arg("elsai_lsa_originate",4,"uint32_t");
-  if(!SWIG_isptrtype(L,5)) SWIG_fail_arg("elsai_lsa_originate",5,"void const *");
-  if(!lua_isnumber(L,6)) SWIG_fail_arg("elsai_lsa_originate",6,"size_t");
   
   if (!SWIG_IsOK(SWIG_ConvertPtr(L,1,(void**)&arg1,SWIGTYPE_p_proto_ospf,0))){
     SWIG_fail_ptr("elsai_lsa_originate",1,SWIGTYPE_p_proto_ospf);
@@ -2104,10 +2102,11 @@ static int _wrap_elsai_lsa_originate(lua_State* L) {
   arg3 = (uint32_t)lua_tonumber(L, 3);
   SWIG_contract_assert((lua_tonumber(L,4)>=0),"number must not be negative")
   arg4 = (uint32_t)lua_tonumber(L, 4);
-  arg5=(void *)SWIG_MustGetPtr(L,5,0,0,5,"elsai_lsa_originate");
-  SWIG_contract_assert((lua_tonumber(L,6)>=0),"number must not be negative")
-  arg6 = (size_t)lua_tonumber(L, 6);
-  elsai_lsa_originate(arg1,arg2,arg3,arg4,(void const *)arg5,arg6);
+  {
+    if(!lua_isstring(L,5)) SWIG_fail_arg("???",5,"<lua string>");
+    arg5 = (unsigned char *)lua_tolstring(L, 5, &arg6);
+  }
+  elsai_lsa_originate(arg1,arg2,arg3,arg4,(unsigned char const *)arg5,arg6);
   
   return SWIG_arg;
   

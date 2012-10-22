@@ -4,8 +4,8 @@
  * Author: Markus Stenberg <fingon@iki.fi>
  *
  * Created:       Wed Aug  1 14:14:38 2012 mstenber
- * Last modified: Mon Oct 22 13:42:02 2012 mstenber
- * Edit time:     104 min
+ * Last modified: Mon Oct 22 14:33:55 2012 mstenber
+ * Edit time:     105 min
  *
  */
 
@@ -294,7 +294,7 @@ void elsai_lsa_originate(elsa_client client,
                          elsa_lsatype lsatype,
                          uint32_t lsid,
                          uint32_t sn,
-                         const void *body, size_t body_len)
+                         const unsigned char *body, size_t body_len)
 {
   struct ospf_lsa_header lsa;
   void *tmp;
