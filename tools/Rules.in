@@ -15,6 +15,7 @@ client-dirs := @CLIENT@
 client-dir-paths := $(client-dirs)
 doc-dirs := doc
 doc-dir-paths := $(doc-dirs)
+elsa-sources=@elsa_sources@
 
 all-dirs:=$(static-dirs) $(dynamic-dirs) $(client-dirs) $(doc-dirs)
 clean-dirs:=$(all-dirs) proto sysdep

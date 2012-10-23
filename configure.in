@@ -22,11 +22,16 @@ AC_ARG_VAR([M4], [location of the M4 program])
 
 m4_include([tools/lua.m4])
 
-AX_WITH_LUA
-AX_LUA_VERSION()
+elsa_sources=""
 AX_LUA_HEADERS
 AX_LUA_LIBS
-AX_LUA_LIB_VERSION()
+if test -n "$LUA_LIB" ; then
+   AX_LUA_LIB_VERSION()
+   elsa_sources="elsa.c elsa_platform.c elsa_wrap.c"
+   AC_DEFINE(ELSA_ENABLED)
+fi
+AC_SUBST(elsa_sources)
+
 CFLAGS="$CFLAGS $LUA_INCLUDE"
 CPPFLAGS="$CPPFLAGS $LUA_INCLUDE"
 

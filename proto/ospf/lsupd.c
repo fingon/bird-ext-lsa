@@ -7,8 +7,11 @@
  */
 
 #include "ospf.h"
+
+#ifdef ELSA_ENABLED
 #include "elsa_internal.h"
 #include "elsa_platform.h"
+#endif /* ELSA_ENABLED */
 
 struct ospf_lsupd_packet
 {
@@ -433,8 +436,10 @@ ospf_lsupd_receive(struct ospf_packet *ps_i, struct ospf_iface *ifa,
   struct proto_ospf *po = ifa->oa->po;
   struct proto *p = &po->proto;
   unsigned int i, max, sendreq = 1;
+#ifdef ELSA_ENABLED
   elsa_lsa dummy_elsa_lsa;
   struct top_hash_entry dummy_the;
+#endif /* ELSA_ENABLED */
 
   unsigned int size = ntohs(ps_i->length);
   if (size < (sizeof(struct ospf_lsupd_packet) + sizeof(struct ospf_lsa_header)))
@@ -583,11 +588,13 @@ ospf_lsupd_receive(struct ospf_packet *ps_i, struct ospf_iface *ifa,
 	OSPF_TRACE(D_EVENTS, "Received old self-originated LSA (Type: %04x, Id: %R, Rt: %R)",
 		   lsatmp.type, lsatmp.id, lsatmp.rt);
 
+#ifdef ELSA_ENABLED
         /* Give ELSA first dibs at doing something with it.*/
         dummy_the.lsa = lsatmp;
         dummy_the.lsa_body = lsa + 1;
         dummy_elsa_lsa = elsa_platform_wrap_lsa(po, &dummy_the);
         elsa_notify_duplicate_lsa(po->elsa, dummy_elsa_lsa);
+#endif /* ELSA_ENABLED */
 
 	if (lsadb)
 	{

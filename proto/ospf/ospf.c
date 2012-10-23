@@ -237,7 +237,9 @@ ospf_start(struct proto *p)
   po->dridd = c->dridd;
   if(!po->dridd && po->rid_is_random)
     log(L_WARN "%s: Duplicate RID detection should be enabled when using a randomly generated RID", p->name);
+#ifdef ELSA_ENABLED
   po->elsa = elsa_create(po);
+#endif /* ELSA_ENABLED */
 #endif /* OSPFv3 */
   po->rfc1583 = c->rfc1583;
   po->ebit = 0;
@@ -481,7 +483,10 @@ ospf_disp(timer * timer)
   WALK_LIST(oa, po->area_list)
     area_disp(oa);
 
+#ifdef ELSA_ENABLED
+  /* Call the ELSA dispatch callback */
   elsa_dispatch(po->elsa);
+#endif /* ELSA_ENABLED */
 
   /* Age LSA DB */
   ospf_age(po);

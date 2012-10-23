@@ -12,12 +12,16 @@ void
 flush_lsa(struct top_hash_entry *en, struct proto_ospf *po)
 {
   struct proto *p = &po->proto;
+#ifdef ELSA_ENABLED
   elsa_lsa elsa_lsa = elsa_platform_wrap_lsa(po, en);
+#endif /* ELSA_ENABLED */
 
   OSPF_TRACE(D_EVENTS,
 	     "Going to remove LSA Type: %04x, Id: %R, Rt: %R, Age: %u, Seqno: 0x%x",
 	     en->lsa.type, en->lsa.id, en->lsa.rt, en->lsa.age, en->lsa.sn);
+#ifdef ELSA_ENABLED
   elsa_notify_deleting_lsa(po->elsa, elsa_lsa);
+#endif /* ELSA_ENABLED */
   s_rem_node(SNODE en);
   if (en->lsa_body != NULL)
     mb_free(en->lsa_body);
@@ -525,7 +529,9 @@ lsa_install_new(struct proto_ospf *po, struct ospf_lsa_header *lsa, u32 domain, 
   /* LSA can be temporarrily, but body must be mb_allocated. */
   int change = 0;
   struct top_hash_entry *en;
+#ifdef ELSA_ENABLED
   elsa_lsa elsa_lsa;
+#endif /* ELSA_ENABLED */
 
   if ((en = ospf_hash_find_header(po->gr, domain, lsa)) == NULL)
   {
@@ -560,8 +566,10 @@ lsa_install_new(struct proto_ospf *po, struct ospf_lsa_header *lsa, u32 domain, 
   if (change)
   {
     schedule_rtcalc(po);
+#ifdef ELSA_ENABLED
     elsa_lsa = elsa_platform_wrap_lsa(po, en);
     elsa_notify_changed_lsa(po->elsa, elsa_lsa);
+#endif /* ELSA_ENABLED */
   }
 
   return en;
