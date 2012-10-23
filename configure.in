@@ -26,7 +26,9 @@ elsa_sources=""
 AX_LUA_HEADERS
 AX_LUA_LIBS
 if test -n "$LUA_LIB" ; then
-   AX_LUA_LIB_VERSION()
+   if test "$cross_compiling" = "no" ; then
+      AX_LUA_LIB_VERSION()
+   fi
    elsa_sources="elsa.c elsa_platform.c elsa_wrap.c"
    AC_DEFINE(ELSA_ENABLED)
 fi
