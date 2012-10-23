@@ -4,7 +4,7 @@
  * Author: Markus Stenberg <fingon@iki.fi>
  *
  * Created:       Wed Aug  1 14:09:11 2012 mstenber
- * Last modified: Mon Oct 22 13:35:25 2012 mstenber
+ * Last modified: Mon Oct 22 17:12:41 2012 mstenber
  * Edit time:     17 min
  *
  */
@@ -58,7 +58,7 @@ struct elsa_platform_struct {
   struct elsa_lsa_struct lsa[SUPPORTED_SIMULTANEOUS_LSA_ITERATIONS];
 };
 
-#include "lib/birdlib.h"
+#include "nest/bird.h"
 
 #define elsai_log(file,line,level,fmt,...)                      \
 do {                                                            \

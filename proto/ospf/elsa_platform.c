@@ -4,8 +4,8 @@
  * Author: Markus Stenberg <fingon@iki.fi>
  *
  * Created:       Wed Aug  1 14:14:38 2012 mstenber
- * Last modified: Mon Oct 22 14:33:55 2012 mstenber
- * Edit time:     105 min
+ * Last modified: Mon Oct 22 17:14:08 2012 mstenber
+ * Edit time:     111 min
  *
  */
 
@@ -270,7 +270,11 @@ uint32_t elsai_neigh_get_rid(elsa_client client, elsa_neigh neigh)
 
 uint32_t elsai_neigh_get_iid(elsa_client client, elsa_neigh neigh)
 {
+#ifdef OSPFv3
   return neigh->iface_id;
+#else
+  return 0;
+#endif
 }
 
 elsa_neigh elsai_neigh_get_next(elsa_client client, elsa_neigh neigh)

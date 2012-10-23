@@ -433,6 +433,7 @@ ospf_rx_hook(sock *sk, int size)
   if (rid == po->router_id)
   {
     log(L_ERR "%s%I - received my own router ID!", mesg, sk->faddr);
+#ifdef OSPFv3
     if (config->rid_is_random
         && po->proto.cf->rid_is_random
         && po->proto.cf->router_id == config->router_id
@@ -443,6 +444,7 @@ ospf_rx_hook(sock *sk, int size)
         ospf_dridd_trigger(po);
       }
     }
+#endif /* OSPFv3 */
     return 1;
   }
 
