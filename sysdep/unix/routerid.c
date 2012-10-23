@@ -103,6 +103,11 @@ ridn(char *msg, ...)
   va_end(args);
 }
 
+
+#ifndef IPV6
+
+/* On v6 side, this already exists; on v4, not (sigh) */
+
 static int
 ipv4_pton_u32(char *a, u32 *o)
 {
@@ -127,6 +132,9 @@ ipv4_pton_u32(char *a, u32 *o)
   *o = ia;
   return 1;
 }
+
+#endif /* !IPV6 */
+
 
 u32 read_rid(const char *filename)
 {
