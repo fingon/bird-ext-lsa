@@ -63,3 +63,6 @@
 #undef HAVE_STDINT_H
 
 #define CONFIG_PATH ?
+
+/* Is external LSA support (~= Lua for OSPF) enabled? */
+#undef ELSA_ENABLED
