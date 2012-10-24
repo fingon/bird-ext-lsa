@@ -3,8 +3,10 @@
  *
  * Author: Markus Stenberg <fingon@iki.fi>
  *
+ * Copyright (c) 2012 cisco Systems, Inc.
+ *
  * Created:       Wed Aug  1 14:01:30 2012 mstenber
- * Last modified: Mon Oct 22 13:39:03 2012 mstenber
+ * Last modified: Wed Oct 24 13:22:06 2012 mstenber
  * Edit time:     57 min
  *
  */

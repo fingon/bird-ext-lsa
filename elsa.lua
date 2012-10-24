@@ -5,11 +5,10 @@
 --
 -- Author: Markus Stenberg <fingon@iki.fi>
 --
---  Copyright (c) 2012 Markus Stenberg
---       All rights reserved
+-- Copyright (c) 2012 cisco Systems, Inc.
 --
 -- Created:       Wed Sep 26 23:01:06 2012 mstenber
--- Last modified: Mon Oct 22 14:24:02 2012 mstenber
+-- Last modified: Wed Oct 24 13:20:46 2012 mstenber
 -- Edit time:     139 min
 --
 
