@@ -9,8 +9,8 @@
 --       All rights reserved
 --
 -- Created:       Wed Sep 26 23:01:06 2012 mstenber
--- Last modified: Mon Oct 22 14:24:02 2012 mstenber
--- Edit time:     139 min
+-- Last modified: Thu Oct 25 17:03:58 2012 mstenber
+-- Edit time:     147 min
 --
 
 require 'mst'
@@ -281,13 +281,16 @@ function elsa_notify_changed_lsa()
                    local epa = get_elsa_pa()
                    local lsa = wrap_lsa(elsac.elsa_active_lsa_get())
 
+                   -- _any_ LSA change may result in reachability change
+                   epa:ospf_changed()
+
                    -- other LSAs we can't do anything about anyway
                    if lsa.type ~= elsa_pa.AC_TYPE
                    then
                       return
                    end
 
-                   mst.d('changed AC - XXX')
+                   mst.d('changed AC')
                 end)
 
 end
@@ -299,13 +302,16 @@ function elsa_notify_deleting_lsa()
 
                    mst.d('entered elsa_notify_deleting_lsa')
 
+                   -- _any_ LSA change may result in reachability change
+                   epa:ospf_changed()
+
                    -- other LSAs we can't do anything about anyway
                    if lsa.type ~= elsa_pa.AC_TYPE
                    then
                       return
                    end
 
-                   mst.d('deleting AC - XXX')
+                   mst.d('deleting AC')
                 end)
 
 end
