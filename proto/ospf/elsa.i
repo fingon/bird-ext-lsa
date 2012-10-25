@@ -1,3 +1,9 @@
+//
+// Author: Markus Stenberg <fingon@iki.fi>
+//
+// Copyright (c) 2012 cisco Systems, Inc.
+//
+
 %module elsac
 %include "typemaps.i"
 

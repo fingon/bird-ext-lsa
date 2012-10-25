@@ -1,7 +1,9 @@
 /*
  *	BIRD Internet Routing Daemon -- Router ID storage
  *
- *	(c) 2012 Benjamin Paterson <benjamin@paterson.fr>
+ *      Author: Benjamin Paterson <benjamin@paterson.fr>
+ *
+ *      Copyright (c) 2012 cisco Systems, Inc.
  *
  *	Can be freely distributed and used under the terms of the GNU GPL.
  */

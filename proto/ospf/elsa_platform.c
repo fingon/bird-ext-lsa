@@ -3,9 +3,11 @@
  *
  * Author: Markus Stenberg <fingon@iki.fi>
  *
+ * Copyright (c) 2012 cisco Systems, Inc.
+ *
  * Created:       Wed Aug  1 14:14:38 2012 mstenber
- * Last modified: Mon Oct 22 17:14:08 2012 mstenber
- * Edit time:     111 min
+ * Last modified: Wed Oct 24 13:22:10 2012 mstenber
+ * Edit time:     112 min
  *
  */
 
