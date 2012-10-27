@@ -8,8 +8,8 @@
 -- Copyright (c) 2012 cisco Systems, Inc.
 --
 -- Created:       Wed Sep 26 23:01:06 2012 mstenber
--- Last modified: Thu Oct 25 19:54:22 2012 mstenber
--- Edit time:     148 min
+-- Last modified: Sat Oct 27 13:34:55 2012 mstenber
+-- Edit time:     156 min
 --
 
 require 'mst'
@@ -19,6 +19,10 @@ require 'elsa_pa'
 require 'linux_if'
 
 elsaw = mst.create_class{class='elsaw', mandatory={'c'}}
+
+-- we don't need date prefix to log messages, as we already get
+-- timestamps from Bird log facility
+mst.enable_debug_date = false
 
 function elsaw:init()
    -- something we need to do here?
@@ -50,7 +54,7 @@ function elsaw:init()
 
 end
 
-function elsaw:iterate_lsa(f, criteria)
+function elsaw:iterate_lsa(rid, f, criteria)
    mst.a(criteria, 'criteria mandatory')
    mst.a(criteria.type, 'criteria.type mandatory')
    for lsa in elsai_lsas_by_type(self.c, criteria.type)
@@ -104,7 +108,7 @@ function elsaw:get_hwf()
    return self.hwf
 end
 
-function elsaw:route_to_rid(rid)
+function elsaw:route_to_rid(rid0, rid)
    local nh, ifname = elsac.elsai_route_to_rid(self.c, rid)
    local r = {nh=nh, ifname=ifname}
    return r
