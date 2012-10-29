@@ -8,8 +8,8 @@
 -- Copyright (c) 2012 cisco Systems, Inc.
 --
 -- Created:       Wed Sep 26 23:01:06 2012 mstenber
--- Last modified: Sat Oct 27 13:34:55 2012 mstenber
--- Edit time:     156 min
+-- Last modified: Mon Oct 29 16:03:40 2012 mstenber
+-- Edit time:     159 min
 --
 
 require 'mst'
@@ -32,23 +32,25 @@ function elsaw:init()
    -- calculate the hardware fingerprint
    local if_table = linux_if.if_table:new{shell=mst.execute_to_string}
    local m = if_table:read_ip_ipv6()
-   local t = mst.array:new()
+   local hwset = mst.set:new()
    
    for ifname, ifo in pairs(m)
    do
       local hwa = ifo:get_hwaddr()
       if hwa
       then
-         t:insert(hwa)
+         hwset:insert(hwa)
       end
    end
 
    -- must have at least one hw address
-   mst.a(#t > 0)
+   mst.a(#hwset > 0)
    
+   local hwl = hwset:keys()
+
    -- in-place sort 
-   t:sort()
-   self.hwf = t:join(' ')
+   hwl:sort()
+   self.hwf = hwl:join(' ')
 
    mst.d('got hwf', self.hwf)
 
@@ -211,20 +213,20 @@ function _debug_state()
    print('got link array', mst.repr(l))
    
    local rid = elsac.elsai_get_rid(c)
-   print('router rid', string.format('%x', rid))
+   print('router rid', rid)
 end
 
 local _elsa_pa = false
 
 function get_elsa_pa()
    local e = elsac.elsa_active_get()
-   mst.d('got active', e)
+   --mst.d('got active', e)
    
    local c = e.client
-   mst.d('got client', c)
+   --mst.d('got client', c)
    
    local rid = elsac.elsai_get_rid(c)
-   mst.d('router rid', string.format('%x', rid))
+   --mst.d('router rid', rid)
 
    if not _elsa_pa
    then
