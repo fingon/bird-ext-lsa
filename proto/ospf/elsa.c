@@ -6,8 +6,8 @@
  * Copyright (c) 2012 cisco Systems, Inc.
  *
  * Created:       Wed Aug  1 14:01:30 2012 mstenber
- * Last modified: Wed Oct 24 13:22:06 2012 mstenber
- * Edit time:     57 min
+ * Last modified: Mon Oct 29 15:09:53 2012 mstenber
+ * Edit time:     60 min
  *
  */
 
@@ -19,17 +19,23 @@
 
 extern int luaopen_elsac(lua_State* L);
 
-elsa elsa_create(elsa_client client)
+elsa elsa_create(elsa_client client, const char *elsa_path)
 {
   elsa e;
   int r;
+
+  if (!elsa_path)
+    {
+      ELSA_DEBUG("elsa path not specified -> skipping");
+      return NULL;
+    }
 
   e = elsai_calloc(client, sizeof(*e));
   e->client = client;
   e->l = luaL_newstate();
   luaL_openlibs(e->l);
   luaopen_elsac(e->l);
-  if ((r = luaL_loadfile(e->l, "elsa.lua")) ||
+  if ((r = luaL_loadfile(e->l, elsa_path)) ||
       (r = lua_pcall(e->l, 0, 0, 0))
       )
     {
@@ -45,6 +51,9 @@ elsa elsa_create(elsa_client client)
 
 void elsa_destroy(elsa e)
 {
+  if (!e)
+    return;
+
   lua_close(e->l);
   elsai_free(e->client, e);
   ELSA_DEBUG("destroyed elsa %p", e);
@@ -57,6 +66,9 @@ static elsa active_elsa;
 void elsa_dispatch(elsa e)
 {
   int r;
+
+  if (!e)
+    return;
 
   active_elsa = e;
   /* Call LUA */
@@ -86,6 +98,9 @@ static elsa_lsa active_elsa_lsa;
 static void dispatch_lsa_callback(elsa e, elsa_lsa lsa, const char *cb_name)
 {
   int r;
+
+  if (!e)
+    return;
 
   active_elsa = e;
   active_elsa_lsa = lsa;

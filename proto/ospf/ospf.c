@@ -235,10 +235,14 @@ ospf_start(struct proto *p)
   po->rid_is_random = proto_get_rid_is_random(p->cf);
 #ifdef OSPFv3
   po->dridd = c->dridd;
+  if (c->elsa_path) {
+    po->elsa_path = mb_alloc(p->pool, strlen(c->elsa_path) + 1);
+    memcpy(po->elsa_path, c->elsa_path, strlen(c->elsa_path) + 1);
+  }
   if(!po->dridd && po->rid_is_random)
     log(L_WARN "%s: Duplicate RID detection should be enabled when using a randomly generated RID", p->name);
 #ifdef ELSA_ENABLED
-  po->elsa = elsa_create(po);
+  po->elsa = elsa_create(po, po->elsa_path);
 #endif /* ELSA_ENABLED */
 #endif /* OSPFv3 */
   po->rfc1583 = c->rfc1583;

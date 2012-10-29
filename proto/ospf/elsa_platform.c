@@ -6,8 +6,8 @@
  * Copyright (c) 2012 cisco Systems, Inc.
  *
  * Created:       Wed Aug  1 14:14:38 2012 mstenber
- * Last modified: Wed Oct 24 13:22:10 2012 mstenber
- * Edit time:     112 min
+ * Last modified: Mon Oct 29 15:12:58 2012 mstenber
+ * Edit time:     113 min
  *
  */
 
@@ -366,9 +366,14 @@ int elsai_get_log_level(void)
 elsa_lsa elsa_platform_wrap_lsa(elsa_client client,
                                 struct top_hash_entry *lsa)
 {
-  int idx = client->elsa->platform.last_lsa++
+  int idx;
+  elsa_lsa l;
+
+  if (!client->elsa)
+    return NULL;
+  idx = client->elsa->platform.last_lsa++
     % SUPPORTED_SIMULTANEOUS_LSA_ITERATIONS;
-  elsa_lsa l = &client->elsa->platform.lsa[idx];
+  l = &client->elsa->platform.lsa[idx];
   l->swapped = false;
   l->hash_entry = lsa;
   return l;

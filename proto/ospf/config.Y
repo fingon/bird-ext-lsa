@@ -118,7 +118,7 @@ ospf_proto_finish(void)
 }
 
 static void
-ospf_dridd_start(int b)
+ospf_dridd(int b)
 {
 #ifdef OSPFv3
   OSPF_CFG->dridd = b;
@@ -128,9 +128,13 @@ ospf_dridd_start(int b)
 }
 
 static void
-ospf_dridd_finish(void)
+ospf_elsa_path(const char *path)
 {
-  /* FIXME tests needed? */
+#ifdef OSPFv3
+  OSPF_CFG->elsa_path = cfg_strdup(path);
+#else /* OSPFv2 */
+  cf_error( "ELSA path can only be used with IPv6");
+#endif
 }
 
 static inline void
@@ -162,6 +166,7 @@ CF_KEYWORDS(RX, BUFFER, LARGE, NORMAL, STUBNET, HIDDEN, SUMMARY, TAG, EXTERNAL)
 CF_KEYWORDS(WAIT, DELAY, LSADB, ECMP, LIMIT, WEIGHT, NSSA, TRANSLATOR, STABILITY)
 CF_KEYWORDS(GLOBAL, LSID, ROUTER, SELF, INSTANCE, REAL)
 CF_KEYWORDS(DUPLICATE, RID, DETECTION)
+CF_KEYWORDS(ELSA, PATH);
 
 %type <t> opttext
 %type <ld> lsadb_args
@@ -182,6 +187,7 @@ ospf_proto_item:
    proto_item
  | RFC1583COMPAT bool { OSPF_CFG->rfc1583 = $2; }
  | ospf_dridd
+ | ospf_elsa_path
  | ECMP bool { OSPF_CFG->ecmp = $2 ? DEFAULT_ECMP_LIMIT : 0; }
  | ECMP bool LIMIT expr { OSPF_CFG->ecmp = $2 ? $4 : 0; if ($4 < 0) cf_error("ECMP limit cannot be negative"); }
  | TICK expr { OSPF_CFG->tick = $2; if($2<=0) cf_error("Tick must be greater than zero"); }
@@ -419,24 +425,18 @@ ospf_iface:
   ospf_iface_start iface_patt_list ospf_instance_id ospf_iface_opt_list { ospf_iface_finish(); }
  ;
 
-ospf_dridd:
-   ospf_dridd_start '{' ospf_dridd_opts '}' { ospf_dridd_finish(); }
- | ospf_dridd_start { ospf_dridd_finish(); }
- ;
-
-ospf_dridd_start: DUPLICATE RID DETECTION bool
+ospf_dridd: 
+ DUPLICATE RID DETECTION bool
  {
-  ospf_dridd_start($4);
+  ospf_dridd($4);
  }
 ;
 
-ospf_dridd_opts:
-   /* empty */
- | ospf_dridd_opts ospf_dridd_item ';'
- ;
-
-ospf_dridd_item:
-  /* empty for the moment */
+ospf_elsa_path: 
+ ELSA PATH TEXT
+ {
+  ospf_elsa_path($3);
+ }
 ;
 
 opttext:

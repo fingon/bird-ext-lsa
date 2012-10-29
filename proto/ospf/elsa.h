@@ -6,7 +6,7 @@
  * Copyright (c) 2012 cisco Systems, Inc.
  *
  * Created:       Wed Aug  1 13:31:21 2012 mstenber
- * Last modified: Wed Oct 24 13:21:49 2012 mstenber
+ * Last modified: Mon Oct 29 15:10:17 2012 mstenber
  * Edit time:     86 min
  *
  */
@@ -54,8 +54,10 @@ typedef unsigned short elsa_lsatype;
 
 /******************************************* outside world -> ELSA interface */
 
-/* Create an ELSA instance. NULL is returned in case of an error. */
-elsa elsa_create(elsa_client client);
+/* Create an ELSA instance. NULL is returned in case of an
+ * error. elsa_path is the code to be executed within ELSA (.lua,
+ * typically). */
+elsa elsa_create(elsa_client client, const char *elsa_path);
 
 /* Change notifications */
 void elsa_notify_changed_lsa(elsa e, elsa_lsa lsa);

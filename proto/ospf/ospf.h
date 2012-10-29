@@ -93,6 +93,7 @@ struct ospf_config
   byte rfc1583;
 #ifdef OSPFv3
   byte dridd;                   /* Is duplicate RID detection enabled? */
+  char *elsa_path;              /* Where does the elsa.lua reside? */
 #endif
   byte abr;
   int ecmp;
@@ -793,6 +794,7 @@ struct proto_ospf
 #endif /* ELSA_ENABLED */
 #ifdef OSPFv3
   byte dridd;                   /* Is duplicate RID detection enabled? */
+  char *elsa_path;              /* Where does the elsa.lua reside? */
 #endif /* OSPFv3 */
 };
 

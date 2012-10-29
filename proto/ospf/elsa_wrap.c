@@ -1777,16 +1777,19 @@ static swig_lua_class _wrap_class_elsa_struct = { "elsa_struct", &SWIGTYPE_p_els
 static int _wrap_elsa_create(lua_State* L) {
   int SWIG_arg = 0;
   elsa_client arg1 = (elsa_client) 0 ;
+  char *arg2 = (char *) 0 ;
   elsa result;
   
-  SWIG_check_num_args("elsa_create",1,1)
+  SWIG_check_num_args("elsa_create",2,2)
   if(!SWIG_isptrtype(L,1)) SWIG_fail_arg("elsa_create",1,"elsa_client");
+  if(!SWIG_lua_isnilstring(L,2)) SWIG_fail_arg("elsa_create",2,"char const *");
   
   if (!SWIG_IsOK(SWIG_ConvertPtr(L,1,(void**)&arg1,SWIGTYPE_p_proto_ospf,0))){
     SWIG_fail_ptr("elsa_create",1,SWIGTYPE_p_proto_ospf);
   }
   
-  result = (elsa)elsa_create(arg1);
+  arg2 = (char *)lua_tostring(L, 2);
+  result = (elsa)elsa_create(arg1,(char const *)arg2);
   SWIG_NewPointerObj(L,result,SWIGTYPE_p_elsa_struct,0); SWIG_arg++; 
   return SWIG_arg;
   

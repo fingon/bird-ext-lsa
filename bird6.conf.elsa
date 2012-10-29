@@ -21,13 +21,8 @@ protocol static {
 }
 
 protocol ospf MyOSPF {
-	prefix assignment yes;
-	duplicate rid detection yes { };
-	usableprefix {
-		fda9:b0b:ca7::/48;
-		fda9:dead:beef::/63;
-		fda9:1010:1010::/64;
-	};
+	duplicate rid detection yes ;
+        elsa path "elsa.lua";
 	area 0.0.0.0 {
 		stub no;
 		interface "*" {
