@@ -8,8 +8,8 @@
 -- Copyright (c) 2012 cisco Systems, Inc.
 --
 -- Created:       Wed Sep 26 23:01:06 2012 mstenber
--- Last modified: Mon Oct 29 16:03:40 2012 mstenber
--- Edit time:     159 min
+-- Last modified: Mon Oct 29 16:59:15 2012 mstenber
+-- Edit time:     168 min
 --
 
 require 'mst'
@@ -36,15 +36,17 @@ function elsaw:init()
    
    for ifname, ifo in pairs(m)
    do
-      local hwa = ifo:get_hwaddr()
+      local hwa, err = ifo:get_hwaddr()
       if hwa
       then
          hwset:insert(hwa)
+      else
+         self:d('unable to get hwaddr', ifname, err)
       end
    end
 
    -- must have at least one hw address
-   mst.a(#hwset > 0)
+   mst.a(hwset:count() > 0)
    
    local hwl = hwset:keys()
 
