@@ -6,8 +6,8 @@
  * Copyright (c) 2012 cisco Systems, Inc.
  *
  * Created:       Wed Aug  1 14:14:38 2012 mstenber
- * Last modified: Mon Oct 29 15:12:58 2012 mstenber
- * Edit time:     113 min
+ * Last modified: Sun Nov  4 06:17:46 2012 mstenber
+ * Edit time:     123 min
  *
  */
 
@@ -82,7 +82,8 @@ void elsai_route_to_rid(elsa_client client, uint32_t rid,
       *output_nh = nh_buf;
       *output_if = r->n.nhs->iface->name;
     }
-#else
+#endif /* 0 */
+#if 0
   /* This uses topology.[ch] API, which is reasonable choice, but
      code comment says ->nhs is valid only during SPF calculation. This
      isn't, strictly speaking, true, at the moment. */
@@ -104,6 +105,40 @@ void elsai_route_to_rid(elsa_client client, uint32_t rid,
       *output_if = en->nhs->iface->name;
     }
 #endif /* 0 */
+  /* This uses the in protocol-route table.. and hopefully works. */
+  struct proto *p = &client->proto;
+  struct fib *fib = &p->table->fib;
+
+  *output_nh = NULL;
+  *output_if = NULL;
+  /* We have to iterate through all routes though, hopefully not too
+     many of them (rid is not key) */
+  FIB_WALK(fib, f)
+    {
+      net *n = (net *)f;
+      rte *e;
+      for (e = n->routes ; e ; e = e->next)
+        if (e->attrs->proto == p &&
+            e->u.ospf.router_id == rid)
+          {
+            rta *a = e->attrs;
+            if (a->dest == RTD_ROUTER)
+              {
+                static char nh_buf[25];
+                ELSA_DEBUG("elsai_route_to_rid %x found %p %p",
+                           rid,
+                           a->gw,
+                           a->iface);
+                ip_ntop(a->gw, nh_buf);
+                *output_nh = nh_buf;
+                *output_if = a->iface->name;
+                return;
+              }
+          }
+    }
+  FIB_WALK_END;
+  ELSA_DEBUG("elsai_route_to_rid %x failed", rid);
+
 }
 
 /************************************************************** LSA handling */
