@@ -6,8 +6,8 @@
  * Copyright (c) 2012 cisco Systems, Inc.
  *
  * Created:       Wed Aug  1 14:14:38 2012 mstenber
- * Last modified: Sun Nov  4 06:17:46 2012 mstenber
- * Edit time:     123 min
+ * Last modified: Sun Nov  4 06:35:22 2012 mstenber
+ * Edit time:     127 min
  *
  */
 
@@ -122,10 +122,13 @@ void elsai_route_to_rid(elsa_client client, uint32_t rid,
             e->u.ospf.router_id == rid)
           {
             rta *a = e->attrs;
+            ELSA_DEBUG("elsai_route_to_rid %u considering type %d",
+                       rid,
+                       a->dest);
             if (a->dest == RTD_ROUTER)
               {
                 static char nh_buf[25];
-                ELSA_DEBUG("elsai_route_to_rid %x found %p %p",
+                ELSA_DEBUG("elsai_route_to_rid %u found %p %p",
                            rid,
                            a->gw,
                            a->iface);
@@ -137,7 +140,7 @@ void elsai_route_to_rid(elsa_client client, uint32_t rid,
           }
     }
   FIB_WALK_END;
-  ELSA_DEBUG("elsai_route_to_rid %x failed", rid);
+  ELSA_DEBUG("elsai_route_to_rid %u failed", rid);
 
 }
 
