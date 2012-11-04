@@ -8,7 +8,7 @@
 -- Copyright (c) 2012 cisco Systems, Inc.
 --
 -- Created:       Wed Sep 26 23:01:06 2012 mstenber
--- Last modified: Mon Oct 29 16:59:15 2012 mstenber
+-- Last modified: Sun Nov  4 06:36:48 2012 mstenber
 -- Edit time:     168 min
 --
 
@@ -113,6 +113,10 @@ function elsaw:get_hwf()
 end
 
 function elsaw:route_to_rid(rid0, rid)
+   if rid0 == rid
+   then
+      return {}
+   end
    local nh, ifname = elsac.elsai_route_to_rid(self.c, rid)
    local r = {nh=nh, ifname=ifname}
    return r
