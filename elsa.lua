@@ -8,8 +8,8 @@
 -- Copyright (c) 2012 cisco Systems, Inc.
 --
 -- Created:       Wed Sep 26 23:01:06 2012 mstenber
--- Last modified: Sun Nov  4 06:36:48 2012 mstenber
--- Edit time:     168 min
+-- Last modified: Tue Nov  6 09:18:40 2012 mstenber
+-- Edit time:     169 min
 --
 
 require 'mst'
@@ -26,7 +26,6 @@ mst.enable_debug_date = false
 
 function elsaw:init()
    -- something we need to do here?
-   self.last = ''
    self.sn = 0
 
    -- calculate the hardware fingerprint
@@ -91,14 +90,9 @@ end
 
 function elsaw:originate_lsa(d)
    self:a(d.type == elsa_pa.AC_TYPE, 'support for other types missing')
-   if self.last == d.body
-   then
-      mst.d('skipped duplicate LSA')
-      return
-   end
-   self.last = d.body
+   self:a(d.body, 'no body?!?')
    self.sn = self.sn + 1
-   elsac.elsai_lsa_originate(self.c, d.type, 0, self.sn, self.last)
+   elsac.elsai_lsa_originate(self.c, d.type, 0, self.sn, d.body)
 end
 
 should_change_rid = false
@@ -291,17 +285,7 @@ function elsa_notify_changed_lsa()
    mst.d_xpcall(function ()
                    local epa = get_elsa_pa()
                    local lsa = wrap_lsa(elsac.elsa_active_lsa_get())
-
-                   -- _any_ LSA change may result in reachability change
-                   epa:ospf_changed()
-
-                   -- other LSAs we can't do anything about anyway
-                   if lsa.type ~= elsa_pa.AC_TYPE
-                   then
-                      return
-                   end
-
-                   mst.d('changed AC')
+                   epa:lsa_changed(lsa)
                 end)
 
 end
@@ -310,19 +294,7 @@ function elsa_notify_deleting_lsa()
    mst.d_xpcall(function ()
                    local epa = get_elsa_pa()
                    local lsa = wrap_lsa(elsac.elsa_active_lsa_get())
-
-                   mst.d('entered elsa_notify_deleting_lsa')
-
-                   -- _any_ LSA change may result in reachability change
-                   epa:ospf_changed()
-
-                   -- other LSAs we can't do anything about anyway
-                   if lsa.type ~= elsa_pa.AC_TYPE
-                   then
-                      return
-                   end
-
-                   mst.d('deleting AC')
+                   epa:lsa_deleting(lsa)
                 end)
 
 end
