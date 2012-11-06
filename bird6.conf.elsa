@@ -26,13 +26,9 @@ protocol ospf MyOSPF {
 	area 0.0.0.0 {
 		stub no;
 		interface "*" {
+                        # ! Don't touch the hello+dead! They're mandated by the draft!
 			hello 10;
-			retransmit 6;
-			cost 10;
-			transmit delay 5;
 			dead count 4;
-			type broadcast;
-			wait 15;
 		};
 	};
 }
