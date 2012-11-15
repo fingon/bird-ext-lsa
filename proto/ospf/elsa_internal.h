@@ -7,8 +7,8 @@
  * Copyright (c) 2012 cisco Systems, Inc.
  *
  * Created:       Wed Aug  1 14:23:23 2012 mstenber
- * Last modified: Wed Oct 24 13:21:53 2012 mstenber
- * Edit time:     17 min
+ * Last modified: Thu Nov 15 12:13:18 2012 mstenber
+ * Edit time:     18 min
  *
  */
 
@@ -26,9 +26,6 @@ struct elsa_struct {
   struct elsa_platform_struct platform;
 
   lua_State *l;
-
-  unsigned char buf[65536];
-  unsigned char *tail;
 };
 
 #endif /* ELSA_INTERNAL_H */

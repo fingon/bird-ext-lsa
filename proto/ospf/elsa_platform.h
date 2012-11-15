@@ -6,7 +6,7 @@
  * Copyright (c) 2012 cisco Systems, Inc.
  *
  * Created:       Wed Aug  1 14:09:11 2012 mstenber
- * Last modified: Wed Oct 24 13:21:57 2012 mstenber
+ * Last modified: Wed Nov 14 15:06:57 2012 mstenber
  * Edit time:     17 min
  *
  */
@@ -18,7 +18,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define SUPPORTED_SIMULTANEOUS_LSA_ITERATIONS 4
+#define SUPPORTED_SIMULTANEOUS_LSA_ITERATIONS 1
 
 /* BIRD-specific ELSA platform definitions. */
 typedef struct proto_ospf *elsa_client;
