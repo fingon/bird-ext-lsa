@@ -431,22 +431,37 @@ ospf_rx_hook(sock *sk, int size)
     return 1;
 
   if (rid == po->router_id)
-  {
-    log(L_ERR "%s%I - received my own router ID!", mesg, sk->faddr);
+    {
+      log(L_ERR "%s%I - received my own router ID!", mesg, sk->faddr);
 #ifdef OSPFv3
-    if (config->rid_is_random
-        && po->proto.cf->rid_is_random
-        && po->proto.cf->router_id == config->router_id
-        && po->dridd) {
-      log(L_ERR "Someone should reconfigure");
-      if (memcmp(&sk->faddr, &sk->laddr, sizeof(ip_addr)) > 0) {
-        log(L_ERR ".. and it's me!");
-        ospf_dridd_trigger(po);
-      }
-    }
+      if (config->rid_is_random
+          && po->proto.cf->rid_is_random
+          && po->proto.cf->router_id == config->router_id
+          && po->dridd)
+        {
+          struct iface *iface;
+          struct ifa *a;
+          WALK_LIST(iface, iface_list)
+            WALK_LIST(a, iface->addrs)
+            {
+              log(L_ERR "%s have %I address / %d scope", mesg, a->ip, a->scope); 
+              if (a->scope == SCOPE_LINK)
+                if (ipa_equal(sk->faddr, a->ip))
+                  {
+                    log(L_ERR "But it was from our own linklocal -> ignoring");
+                    return 1;
+                  }
+            }
+
+          log(L_ERR "Someone should reconfigure");
+          if (memcmp(&sk->faddr, &sk->laddr, sizeof(ip_addr)) > 0) {
+            log(L_ERR ".. and it's me!");
+            ospf_dridd_trigger(po);
+          }
+        }
 #endif /* OSPFv3 */
-    return 1;
-  }
+      return 1;
+    }
 
   if (rid == 0)
   {
