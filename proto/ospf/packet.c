@@ -444,7 +444,6 @@ ospf_rx_hook(sock *sk, int size)
           WALK_LIST(iface, iface_list)
             WALK_LIST(a, iface->addrs)
             {
-              log(L_ERR "%s have %I address / %d scope", mesg, a->ip, a->scope); 
               if (a->scope == SCOPE_LINK)
                 if (ipa_equal(sk->faddr, a->ip))
                   {
