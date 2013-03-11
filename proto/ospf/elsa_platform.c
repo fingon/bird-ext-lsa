@@ -6,8 +6,8 @@
  * Copyright (c) 2012 cisco Systems, Inc.
  *
  * Created:       Wed Aug  1 14:14:38 2012 mstenber
- * Last modified: Mon Mar 11 10:23:01 2013 mstenber
- * Edit time:     131 min
+ * Last modified: Mon Mar 11 16:02:45 2013 mstenber
+ * Edit time:     143 min
  *
  */
 
@@ -111,6 +111,8 @@ void elsai_route_to_rid(elsa_client client, uint32_t rid,
 
   *output_nh = NULL;
   *output_if = NULL;
+
+  rte *best_e = NULL;
   /* We have to iterate through all routes though, hopefully not too
      many of them (rid is not key) */
   FIB_WALK(fib, f)
@@ -120,27 +122,26 @@ void elsai_route_to_rid(elsa_client client, uint32_t rid,
       for (e = n->routes ; e ; e = e->next)
         if (rte_is_valid(e)
             && e->attrs->proto == p
-            && e->u.ospf.router_id == rid)
-          {
-            rta *a = e->attrs;
-            ELSA_DEBUG("elsai_route_to_rid %u considering type %d",
-                       rid,
-                       a->dest);
-            if (a->dest == RTD_ROUTER)
-              {
-                static char nh_buf[25];
-                ELSA_DEBUG("elsai_route_to_rid %u found %p %p",
-                           rid,
-                           a->gw,
-                           a->iface);
-                ip_ntop(a->gw, nh_buf);
-                *output_nh = nh_buf;
-                *output_if = a->iface->name;
-                return;
-              }
-          }
+            && e->u.ospf.router_id == rid
+            && e->attrs->dest == RTD_ROUTER
+            && (!best_e || best_e->u.ospf.metric1 > e->u.ospf.metric1))
+          best_e = e;
     }
   FIB_WALK_END;
+  if (best_e)
+    {
+      rta *a = best_e->attrs;
+      static char nh_buf[25];
+      ELSA_DEBUG("elsai_route_to_rid %u found (%u/%u) via %s",
+                 rid,
+                 best_e->u.ospf.metric1,
+                 best_e->u.ospf.metric2,
+                 a->iface->name);
+      ip_ntop(a->gw, nh_buf);
+      *output_nh = nh_buf;
+      *output_if = a->iface->name;
+      return;
+    }
   ELSA_DEBUG("elsai_route_to_rid %u failed", rid);
 
 }
