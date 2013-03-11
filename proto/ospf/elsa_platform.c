@@ -6,8 +6,8 @@
  * Copyright (c) 2012 cisco Systems, Inc.
  *
  * Created:       Wed Aug  1 14:14:38 2012 mstenber
- * Last modified: Sun Nov  4 06:35:22 2012 mstenber
- * Edit time:     127 min
+ * Last modified: Mon Mar 11 10:23:01 2013 mstenber
+ * Edit time:     131 min
  *
  */
 
@@ -118,8 +118,9 @@ void elsai_route_to_rid(elsa_client client, uint32_t rid,
       net *n = (net *)f;
       rte *e;
       for (e = n->routes ; e ; e = e->next)
-        if (e->attrs->proto == p &&
-            e->u.ospf.router_id == rid)
+        if (rte_is_valid(e)
+            && e->attrs->proto == p
+            && e->u.ospf.router_id == rid)
           {
             rta *a = e->attrs;
             ELSA_DEBUG("elsai_route_to_rid %u considering type %d",
