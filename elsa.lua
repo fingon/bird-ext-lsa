@@ -8,9 +8,22 @@
 -- Copyright (c) 2012 cisco Systems, Inc.
 --
 -- Created:       Wed Sep 26 23:01:06 2012 mstenber
--- Last modified: Tue Nov  6 09:18:40 2012 mstenber
--- Edit time:     169 min
+-- Last modified: Thu Feb 28 13:45:30 2013 mstenber
+-- Edit time:     177 min
 --
+
+-- override the print stmt
+
+-- (Have to do this here, as some of the sub-modules require'd are
+-- side-effect-free, and therefore will cache local copy of print
+-- function)
+
+function print(...)
+   local l = mst.array_map({...}, tostring)
+   elsac.elsa_log_string(string.format('[lua] %s', table.concat(l, "\t")))
+end
+
+
 
 require 'mst'
 require 'ssloop'
@@ -302,13 +315,13 @@ end
 -- capture the io.stdout/stderr
 function create_log_wrapper(prefix)
    return function (s)
-      elsac.elsa_log_string(string.format("%s %s", prefix, s))
+      --elsac.elsa_log_string(string.format("%s %s", prefix, s))
       for i, v in ipairs(mst.string_split(s, "\n"))
       do
          local sl = mst.string_strip(v)
-         if #sl
+         if sl and #sl>0
          then
-            elsac.elsa_log_string(string.format("[lua] %s", v))
+            elsac.elsa_log_string(string.format("%s %s", prefix, v))
          end
       end
    end
@@ -317,11 +330,8 @@ end
 io.stdout = {write = create_log_wrapper("[lua-o]")}
 io.stderr = {write = create_log_wrapper("[lua-e]")}
 
--- override the print stmt
-function print(...)
-   local l = mst.array_map({...}, tostring)
-   elsac.elsa_log_string(string.format('[lua] %s', table.concat(l, "\t")))
-end
+print('hello from LUA (print)')
+elsac.elsa_log_string('hello from LUA (raw log)')
+mst.d('hello from lua [debug]')
+print('debug is', mst.enable_debug)
 
-print('hello from LUA', 2)
-elsac.elsa_log_string('hello from LUA 2')
