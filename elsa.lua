@@ -8,8 +8,8 @@
 -- Copyright (c) 2012 cisco Systems, Inc.
 --
 -- Created:       Wed Sep 26 23:01:06 2012 mstenber
--- Last modified: Thu Feb 28 13:45:30 2013 mstenber
--- Edit time:     177 min
+-- Last modified: Thu Mar 14 13:40:19 2013 mstenber
+-- Edit time:     178 min
 --
 
 -- override the print stmt
@@ -165,6 +165,7 @@ function wrap_lsa(l)
    t.type = elsac.elsai_lsa_get_type(l)
    t.rid = elsac.elsai_lsa_get_rid(l)
    t.lsid = elsac.elsai_lsa_get_lsid(l)
+   t.age = elsac.elsai_lsa_get_age(l)
    t.body = elsac.elsai_lsa_get_body(l)
    return t
 end
