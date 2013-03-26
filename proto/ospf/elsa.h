@@ -6,7 +6,7 @@
  * Copyright (c) 2012 cisco Systems, Inc.
  *
  * Created:       Wed Aug  1 13:31:21 2012 mstenber
- * Last modified: Thu Mar 14 13:33:43 2013 mstenber
+ * Last modified: Mon Oct 29 15:10:17 2012 mstenber
  * Edit time:     86 min
  *
  */
@@ -115,7 +115,6 @@ elsa_lsa elsai_get_lsa_by_type_next(elsa_client client, elsa_lsa lsa);
 elsa_lsatype elsai_lsa_get_type(elsa_lsa lsa);
 uint32_t elsai_lsa_get_rid(elsa_lsa lsa);
 uint32_t elsai_lsa_get_lsid(elsa_lsa lsa);
-uint32_t elsai_lsa_get_age(elsa_lsa lsa);
 void elsai_lsa_get_body(elsa_lsa lsa, unsigned char **body, size_t *body_len);
 
 /******************************************************** Interface handling */

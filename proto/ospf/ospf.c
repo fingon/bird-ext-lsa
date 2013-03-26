@@ -490,7 +490,11 @@ ospf_disp(timer * timer)
 
 #ifdef ELSA_ENABLED
   /* Call the ELSA dispatch callback */
-  elsa_dispatch(po->elsa);
+  /* (but if and only if we aren't about to calculate routes; otherwise,
+     we should invoke it on the next iteration). This prevents extra churn,
+     and more likely leaves the system in a SANE state.. */
+  if (!po->calcrt)
+    elsa_dispatch(po->elsa);
 #endif /* ELSA_ENABLED */
 
   /* Age LSA DB */

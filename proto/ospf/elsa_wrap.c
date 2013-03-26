@@ -2252,30 +2252,6 @@ fail:
 }
 
 
-static int _wrap_elsai_lsa_get_age(lua_State* L) {
-  int SWIG_arg = 0;
-  elsa_lsa arg1 = (elsa_lsa) 0 ;
-  uint32_t result;
-  
-  SWIG_check_num_args("elsai_lsa_get_age",1,1)
-  if(!SWIG_isptrtype(L,1)) SWIG_fail_arg("elsai_lsa_get_age",1,"elsa_lsa");
-  
-  if (!SWIG_IsOK(SWIG_ConvertPtr(L,1,(void**)&arg1,SWIGTYPE_p_elsa_lsa_struct,0))){
-    SWIG_fail_ptr("elsai_lsa_get_age",1,SWIGTYPE_p_elsa_lsa_struct);
-  }
-  
-  result = (uint32_t)elsai_lsa_get_age(arg1);
-  lua_pushnumber(L, (lua_Number) result); SWIG_arg++;
-  return SWIG_arg;
-  
-  if(0) SWIG_fail;
-  
-fail:
-  lua_error(L);
-  return SWIG_arg;
-}
-
-
 static int _wrap_elsai_lsa_get_body(lua_State* L) {
   int SWIG_arg = 0;
   elsa_lsa arg1 = (elsa_lsa) 0 ;
@@ -2674,7 +2650,6 @@ static const struct luaL_reg swig_commands[] = {
     { "elsai_lsa_get_type", _wrap_elsai_lsa_get_type},
     { "elsai_lsa_get_rid", _wrap_elsai_lsa_get_rid},
     { "elsai_lsa_get_lsid", _wrap_elsai_lsa_get_lsid},
-    { "elsai_lsa_get_age", _wrap_elsai_lsa_get_age},
     { "elsai_lsa_get_body", _wrap_elsai_lsa_get_body},
     { "elsai_if_get", _wrap_elsai_if_get},
     { "elsai_if_get_next", _wrap_elsai_if_get_next},
