@@ -6,8 +6,8 @@
  * Copyright (c) 2012 cisco Systems, Inc.
  *
  * Created:       Wed Aug  1 14:01:30 2012 mstenber
- * Last modified: Mon Oct 29 15:09:53 2012 mstenber
- * Edit time:     60 min
+ * Last modified: Wed May 22 14:41:43 2013 mstenber
+ * Edit time:     62 min
  *
  */
 
@@ -35,11 +35,17 @@ elsa elsa_create(elsa_client client, const char *elsa_path)
   e->l = luaL_newstate();
   luaL_openlibs(e->l);
   luaopen_elsac(e->l);
-  if ((r = luaL_loadfile(e->l, elsa_path)) ||
-      (r = lua_pcall(e->l, 0, 0, 0))
-      )
+  if ((r = luaL_loadfile(e->l, elsa_path)))
     {
-      ELSA_ERROR("error %d in lua init: %s", r, lua_tostring(e->l, -1));
+      ELSA_ERROR("error %d in lua loadfile: %s", r, lua_tostring(e->l, -1));
+      lua_pop(e->l, 1);
+      // is this fatal? hmm
+      abort();
+    }
+
+  if ((r = lua_pcall(e->l, 0, 0, 0)))
+    {
+      ELSA_ERROR("error %d in lua pcall: %s", r, lua_tostring(e->l, -1));
       lua_pop(e->l, 1);
       // is this fatal? hmm
       abort();
