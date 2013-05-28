@@ -6,8 +6,8 @@
  * Copyright (c) 2012 cisco Systems, Inc.
  *
  * Created:       Wed Aug  1 14:14:38 2012 mstenber
- * Last modified: Mon Mar 11 16:02:45 2013 mstenber
- * Edit time:     143 min
+ * Last modified: Thu Mar 14 13:33:24 2013 mstenber
+ * Edit time:     144 min
  *
  */
 
@@ -171,6 +171,14 @@ uint32_t elsai_lsa_get_lsid(elsa_lsa lsa)
 
   assert(en);
   return en->lsa.id;
+}
+
+uint32_t elsai_lsa_get_age(elsa_lsa lsa)
+{
+  struct top_hash_entry *en = lsa->hash_entry;
+
+  assert(en);
+  return en->lsa.age;
 }
 
 void elsai_lsa_get_body(elsa_lsa lsa, unsigned char **body, size_t *body_len)
