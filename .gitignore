@@ -30,3 +30,6 @@ cscope.out
 
 # test stuff
 proto/ospf/test/t-elsa
+
+# build directory (for non-local builds, as we want to build e.g. v4+v6)
+/build
