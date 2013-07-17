@@ -8,8 +8,8 @@
 -- Copyright (c) 2012 cisco Systems, Inc.
 --
 -- Created:       Wed Sep 26 23:01:06 2012 mstenber
--- Last modified: Tue May 28 07:01:51 2013 mstenber
--- Edit time:     178 min
+-- Last modified: Wed Jul 17 17:35:11 2013 mstenber
+-- Edit time:     181 min
 --
 
 -- override the print stmt
@@ -42,8 +42,8 @@ function elsaw:init()
    self.sn = 0
 
    -- calculate the hardware fingerprint
-   local if_table = linux_if.if_table:new{shell=mst.execute_to_string}
-   local m = if_table:read_ip_ipv6()
+   self.if_table = linux_if.if_table:new{shell=mst.execute_to_string}
+   local m = self.if_table:read_ip_ipv6()
    local hwset = mst.set:new()
    
    for ifname, ifo in pairs(m)
@@ -246,7 +246,8 @@ function get_elsa_pa()
    then
       local ew = elsaw:new{c=c}
       local skv = skv.skv:new{long_lived=true}
-      _elsa_pa = elsa_pa.elsa_pa:new{elsa=ew, skv=skv, rid=rid}
+      _elsa_pa = elsa_pa.elsa_pa:new{elsa=ew, skv=skv, rid=rid, 
+                                     if_table=ew.if_table}
    else
       _elsa_pa.c = c
       _elsa_pa.rid = rid
