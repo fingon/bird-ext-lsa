@@ -141,7 +141,7 @@ typedef struct rtable {
   int gc_counter;			/* Number of operations since last GC */
   bird_clock_t gc_time;			/* Time of last GC */
   byte gc_scheduled;			/* GC is scheduled */
-  byte prune_state;			/* Table prune state, 1 -> prune is running */
+  byte prune_state;			/* Table prune state, 1 -> scheduled, 2-> running */
   byte hcu_scheduled;			/* Hostcache update is scheduled */
   byte nhu_state;			/* Next Hop Update state */
   struct fib_iterator prune_fit;	/* Rtable prune FIB iterator */
@@ -235,6 +235,12 @@ static inline int rte_is_filtered(rte *r) { return !!(r->flags & REF_FILTERED); 
 #define RA_ACCEPTED	2		/* Announcement of first accepted route */
 #define RA_ANY		3		/* Announcement of any route change */
 
+/* Return value of import_control() callback */
+#define RIC_ACCEPT	1		/* Accepted by protocol */
+#define RIC_PROCESS	0		/* Process it through import filter */
+#define RIC_REJECT	-1		/* Rejected by protocol */
+#define RIC_DROP	-2		/* Silently dropped by protocol */
+
 struct config;
 
 void rt_init(void);
@@ -250,6 +256,7 @@ rte *rte_get_temp(struct rta *);
 void rte_update2(struct announce_hook *ah, net *net, rte *new, struct proto *src);
 static inline void rte_update(rtable *tab, net *net, struct proto *p, struct proto *src, rte *new) { rte_update2(p->main_ahook, net, new, src); }
 void rte_discard(rtable *tab, rte *old);
+int rt_examine(rtable *t, ip_addr prefix, int pxlen, struct proto *p, struct filter *filter);
 void rte_dump(rte *);
 void rte_free(rte *);
 rte *rte_do_cow(rte *);
@@ -258,7 +265,6 @@ void rt_dump(rtable *);
 void rt_dump_all(void);
 int rt_feed_baby(struct proto *p);
 void rt_feed_baby_abort(struct proto *p);
-void rt_schedule_prune_all(void);
 int rt_prune_loop(void);
 struct rtable_config *rt_new_table(struct symbol *s);
 
@@ -398,6 +404,10 @@ struct adata {
   unsigned int length;			/* Length of data */
   byte data[0];
 };
+
+static inline int adata_same(struct adata *a, struct adata *b)
+{ return (a->length == b->length && !memcmp(a->data, b->data, a->length)); }
+
 
 typedef struct ea_list {
   struct ea_list *next;			/* In case we have an override list */

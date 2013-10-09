@@ -17,10 +17,10 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <sys/fcntl.h>
 #include <sys/uio.h>
 #include <sys/un.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <errno.h>
 #include <netinet/in.h>
 #include <netinet/icmp6.h>
@@ -598,7 +598,7 @@ sock_new(pool *p)
   sock *s = ralloc(p, &sk_class);
   s->pool = p;
   // s->saddr = s->daddr = IPA_NONE;
-  s->tos = s->ttl = -1;
+  s->tos = s->priority = s->ttl = -1;
   s->fd = -1;
   return s;
 }
@@ -673,7 +673,7 @@ get_sockaddr(struct sockaddr_in *sa, ip_addr *a, struct iface **ifa, unsigned *p
 #ifdef IPV6
 
 /* PKTINFO handling is also standardized in IPv6 */
-#define CMSG_RX_SPACE CMSG_SPACE(sizeof(struct in6_pktinfo))
+#define CMSG_RX_SPACE (CMSG_SPACE(sizeof(struct in6_pktinfo)) + CMSG_SPACE(sizeof(int)))
 #define CMSG_TX_SPACE CMSG_SPACE(sizeof(struct in6_pktinfo))
 
 /*
@@ -685,14 +685,25 @@ get_sockaddr(struct sockaddr_in *sa, ip_addr *a, struct iface **ifa, unsigned *p
 #ifndef IPV6_RECVPKTINFO
 #define IPV6_RECVPKTINFO IPV6_PKTINFO
 #endif
+/*
+ * Same goes for IPV6_HOPLIMIT -> IPV6_RECVHOPLIMIT.
+ */
+#ifndef IPV6_RECVHOPLIMIT
+#define IPV6_RECVHOPLIMIT IPV6_HOPLIMIT
+#endif
 
 static char *
 sysio_register_cmsgs(sock *s)
 {
   int ok = 1;
+
   if ((s->flags & SKF_LADDR_RX) &&
-      setsockopt(s->fd, IPPROTO_IPV6, IPV6_RECVPKTINFO, &ok, sizeof(ok)) < 0)
+      (setsockopt(s->fd, IPPROTO_IPV6, IPV6_RECVPKTINFO, &ok, sizeof(ok)) < 0))
     return "IPV6_RECVPKTINFO";
+
+  if ((s->flags & SKF_TTL_RX) &&
+      (setsockopt(s->fd, IPPROTO_IPV6, IPV6_RECVHOPLIMIT, &ok, sizeof(ok)) < 0))
+    return "IPV6_RECVHOPLIMIT";
 
   return NULL;
 }
@@ -702,25 +713,34 @@ sysio_process_rx_cmsgs(sock *s, struct msghdr *msg)
 {
   struct cmsghdr *cm;
   struct in6_pktinfo *pi = NULL;
-
-  if (!(s->flags & SKF_LADDR_RX))
-    return;
+  int *hlim = NULL;
 
   for (cm = CMSG_FIRSTHDR(msg); cm != NULL; cm = CMSG_NXTHDR(msg, cm))
-    {
-      if (cm->cmsg_level == IPPROTO_IPV6 && cm->cmsg_type == IPV6_PKTINFO)
-	pi = (struct in6_pktinfo *) CMSG_DATA(cm);
-    }
+  {
+    if (cm->cmsg_level == IPPROTO_IPV6 && cm->cmsg_type == IPV6_PKTINFO)
+      pi = (struct in6_pktinfo *) CMSG_DATA(cm);
 
-  if (!pi)
+    if (cm->cmsg_level == IPPROTO_IPV6 && cm->cmsg_type == IPV6_HOPLIMIT)
+      hlim = (int *) CMSG_DATA(cm);
+  }
+
+  if (s->flags & SKF_LADDR_RX)
+  {
+    if (pi)
+    {
+      get_inaddr(&s->laddr, &pi->ipi6_addr);
+      s->lifindex = pi->ipi6_ifindex;
+    }
+    else
     {
       s->laddr = IPA_NONE;
       s->lifindex = 0;
-      return;
     }
+  }
 
-  get_inaddr(&s->laddr, &pi->ipi6_addr);
-  s->lifindex = pi->ipi6_ifindex;
+  if (s->flags & SKF_TTL_RX)
+    s->ttl = hlim ? *hlim : -1;
+
   return;
 }
 
@@ -783,10 +803,17 @@ sk_setup(sock *s)
     ERR("fcntl(O_NONBLOCK)");
   if (s->type == SK_UNIX)
     return NULL;
-#ifndef IPV6
+
+#ifdef IPV6
+  if ((s->tos >= 0) && setsockopt(fd, SOL_IPV6, IPV6_TCLASS, &s->tos, sizeof(s->tos)) < 0)
+    WARN("IPV6_TCLASS");
+#else
   if ((s->tos >= 0) && setsockopt(fd, SOL_IP, IP_TOS, &s->tos, sizeof(s->tos)) < 0)
     WARN("IP_TOS");
 #endif
+
+  if (s->priority >= 0)
+    sk_set_priority(s, s->priority);
 
 #ifdef IPV6
   int v = 1;
@@ -794,10 +821,10 @@ sk_setup(sock *s)
     WARN("IPV6_V6ONLY");
 #endif
 
-  if (s->ttl >= 0)
-    err = sk_set_ttl_int(s);
+  if ((s->ttl >= 0) && (err = sk_set_ttl_int(s)))
+    goto bad;
 
-  sysio_register_cmsgs(s);
+  err = sysio_register_cmsgs(s);
 bad:
   return err;
 }

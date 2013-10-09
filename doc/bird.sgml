@@ -151,6 +151,9 @@ options. The most important ones are:
 
 	<tag>-g <m/group/</tag>
 	use that group ID, see the next section for details.
+
+	<tag>-f</tag>
+	run bird in foreground.
 </descrip>
 
 <p>BIRD writes messages about its work to log files or syslog (according to config).
@@ -282,7 +285,7 @@ protocol rip {
 	<tag>include "<m/filename/"</tag> 
 	This statement causes inclusion of a new file. The maximal depth is set to 5.
 
-	<tag>log "<m/filename/"|syslog [name <m/name/]|stderr all|{ <m/list of classes/ }</tag> 
+	<tag><label id="dsc-log">log "<m/filename/"|syslog [name <m/name/]|stderr all|{ <m/list of classes/ }</tag> 
 	Set logging of messages having the given class (either <cf/all/ or <cf/{
 	error, trace }/ etc.) into selected destination (a file specified as a filename string,
 	syslog with optional name argument, or the stderr output). Classes are:
@@ -332,8 +335,8 @@ protocol rip {
 	expression and the name of the template. At the moment templates (and <cf/from/ expression)
 	are not implemented for OSPF protocol.
 
-	<tag>define <m/constant/ = (<m/expression/)|<m/number/|<m/IP address/</tag>
-	Define a constant. You can use it later in every place you could use a simple integer or an IP address.
+	<tag>define <m/constant/ = <m/expression/</tag>
+	Define a constant. You can use it later in every place you could use a value of the same type.
 	Besides, there are some predefined numeric constants based on /etc/iproute2/rt_* files.
 	A list of defined constants can be seen (together with other symbols) using 'show symbols' command.
 
@@ -408,8 +411,8 @@ protocol rip {
 	entries. The option may be used multiple times. Other entries
 	can be added dynamically by <cf/add roa/ command.
 
-	<tag>eval <m/expr/</tag> Evaluates given filter expression. It
-	is used by us for testing of filters.
+	<tag>eval <m/expr/</tag>
+	Evaluates given filter expression. It is used by us for	testing of filters.
 </descrip>
 
 <sect>Protocol options
@@ -443,7 +446,6 @@ to zero to disable it. An empty <cf><m/switch/</cf> is equivalent to <cf/on/
 	<cf/packets/ for packets sent and received by the protocol. Default: off.
 
 	<tag>mrtdump all|off|{ states, messages }</tag>
-
 	Set protocol MRTdump flags. MRTdump is a standard binary
 	format for logging information from routing protocols and
 	daemons.  These flags control what kind of information is
@@ -455,9 +457,9 @@ to zero to disable it. An empty <cf><m/switch/</cf> is equivalent to <cf/on/
 	state changes and <cf/messages/ logs received BGP messages.
 	Other protocols does not support MRTdump yet.
 
-	<tag>router id <m/IPv4 address/</tag> This option can be used
-	to override global router id for a given protocol. Default:
-	uses global router id.
+	<tag>router id <m/IPv4 address/</tag>
+	This option can be used to override global router id for a
+	given protocol. Default: uses global router id.
 
 	<tag>import all | none | filter <m/name/ | filter { <m/filter commands/ } | where <m/filter expression/</tag> 
 	Specify a filter to be used for filtering routes coming from
@@ -470,7 +472,7 @@ to zero to disable it. An empty <cf><m/switch/</cf> is equivalent to <cf/on/
 	works in the direction from the routing table to the protocol.
 	Default: <cf/none/.
 
-	<tag>import keep filtered <m/bool/</tag>
+	<tag>import keep filtered <m/switch/</tag>
 	Usually, if an import filter rejects a route, the route is
 	forgotten. When this option is active, these routes are
 	kept in the routing table, but they are hidden and not
@@ -478,7 +480,7 @@ to zero to disable it. An empty <cf><m/switch/</cf> is equivalent to <cf/on/
 	using <cf/show route filtered/. Note that this option does not
 	work for the pipe protocol. Default: off.
 
-	<tag>import limit <m/number/ [action warn | block | restart | disable]</tag>
+	<tag><label id="import-limit">import limit [<m/number/ | off ] [action warn | block | restart | disable]</tag>
 	Specify an import route limit (a maximum number of routes
 	imported from the protocol) and optionally the action to be
 	taken when the limit is hit. Warn action just prints warning
@@ -486,9 +488,9 @@ to zero to disable it. An empty <cf><m/switch/</cf> is equivalent to <cf/on/
 	protocol. Restart and disable actions shut the protocol down
 	like appropriate commands. Disable is the default action if an
 	action is not explicitly specified. Note that limits are reset
-	during protocol reconfigure, reload or restart. Default: <cf/none/.
+	during protocol reconfigure, reload or restart. Default: <cf/off/.
 
-	<tag>receive limit <m/number/ [action warn | block | restart | disable]</tag>
+	<tag>receive limit [<m/number/ | off ] [action warn | block | restart | disable]</tag>
 	Specify an receive route limit (a maximum number of routes
 	received from the protocol and remembered). It works almost
 	identically to <cf>import limit</cf> option, the only
@@ -498,9 +500,9 @@ to zero to disable it. An empty <cf><m/switch/</cf> is equivalent to <cf/on/
 	receive limit is to protect routing tables from
 	overflow. Import limit, on the contrary, counts accepted
 	routes only and routes blocked by the limit are handled like
-	filtered routes. Default: <cf/none/.
+	filtered routes. Default: <cf/off/.
 
-	<tag>export limit <m/number/ [action warn | block | restart | disable]</tag>
+	<tag>export limit [ <m/number/ | off ] [action warn | block | restart | disable]</tag>
 	Specify an export route limit, works similarly to
 	the <cf>import limit</cf> option, but for the routes exported
 	to the protocol. This option is experimental, there are some
@@ -509,13 +511,14 @@ to zero to disable it. An empty <cf><m/switch/</cf> is equivalent to <cf/on/
 	during protocol reload, exported routes counter ignores route
 	blocking and block action also blocks route updates of already
 	accepted routes -- and these details will probably change in
-	the future. Default: <cf/none/.
+	the future. Default: <cf/off/.
 
-	<tag>description "<m/text/"</tag> This is an optional
-	description of the protocol. It is displayed as a part of the
-	output of 'show route all' command.
+	<tag>description "<m/text/"</tag>
+	This is an optional description of the protocol. It is
+	displayed as a part of the output of 'show route all' command.
 
-	<tag>table <m/name/</tag> Connect this protocol to a non-default routing table.
+	<tag>table <m/name/</tag>
+	Connect this protocol to a non-default routing table.
 </descrip>
 
 <p>There are several options that give sense only with certain protocols:
@@ -566,6 +569,22 @@ to zero to disable it. An empty <cf><m/switch/</cf> is equivalent to <cf/on/
 
 	<cf>interface "eth*" 192.168.1.0/24;</cf> - start the protocol on all
 	ethernet interfaces that have address from 192.168.1.0/24.
+
+	<tag><label id="dsc-prio">tx class|dscp <m/num/</tag>
+        This option specifies the value of ToS/DS/Class field in IP
+        headers of the outgoing protocol packets. This may affect how the
+        protocol packets are processed by the network relative to the
+        other network traffic. With <cf/class/ keyword, the value
+        (0-255) is used for the whole ToS/Class octet (but two bits
+        reserved for ECN are ignored). With <cf/dscp/ keyword, the
+        value (0-63) is used just for the DS field in the
+        octet. Default value is 0xc0 (DSCP 0x30 - CS6).
+
+	<tag>tx priority <m/num/</tag>
+        This option specifies the local packet priority. This may
+        affect how the protocol packets are processed in the local TX
+        queues. This option is Linux specific. Default value is 7
+        (highest priority, privileged traffic).
 
 	<tag><label id="dsc-pass">password "<m/password/" [ { id <m/num/; generate from <m/time/; generate to <m/time/; accept from <m/time/; accept to <m/time/; } ]</tag>
 	Specifies a password that can be used by the protocol. Password option can
@@ -623,15 +642,18 @@ codes along with the messages. You do not necessarily need to use
 -- the format of communication between BIRD and <file/birdc/ is stable
 (see the programmer's documentation).
 
-Many commands have the <m/name/ of the protocol instance as an argument.
+<p>There is also lightweight variant of BIRD client called
+<file/birdcl/, which does not support command line editing and history
+and has minimal dependencies. This is useful for running BIRD in
+resource constrained environments, where Readline library (required
+for regular BIRD client) is not available.
+
+<p>Many commands have the <m/name/ of the protocol instance as an argument.
 This argument can be omitted if there exists only a single instance.
 
 <p>Here is a brief list of supported functions:
 
 <descrip>
-	<tag>dump resources|sockets|interfaces|neighbors|attributes|routes|protocols</tag>
-	Dump contents of internal data structures to the debugging output.
-
 	<tag>show status</tag>
 	Show router status, that is BIRD version, uptime and time from last reconfiguration.
 
@@ -670,7 +692,8 @@ This argument can be omitted if there exists only a single instance.
 	Show the list of symbols defined in the configuration (names of protocols, routing tables etc.).
 
 	<tag>show route [[for] <m/prefix/|<m/IP/] [table <m/sym/] [filter <m/f/|where <m/c/] [(export|preexport) <m/p/] [protocol <m/p/] [<m/options/]</tag>
-	Show contents of a routing table (by default of the main one),
+	Show contents of a routing table (by default of the main one or
+        the table attached to a respective protocol),
 	that is routes, their metrics and (in case the <cf/all/ switch is given)
 	all their attributes.
 
@@ -691,8 +714,8 @@ This argument can be omitted if there exists only a single instance.
 	<p>You can also select just routes added by a specific protocol.
 	<cf>protocol <m/p/</cf>.
 
-	<p>If BIRD is configured to keep filtered routes (see </cf/import keep filtered/
-	option), you can show them instead of routes by using </cf/filtered/ switch.
+	<p>If BIRD is configured to keep filtered routes (see <cf/import keep filtered/
+	option), you can show them instead of routes by using <cf/filtered/ switch.
 
 	<p>The <cf/stats/ switch requests showing of route statistics (the
 	number of networks, number of routes before and after filtering). If
@@ -789,6 +812,17 @@ This argument can be omitted if there exists only a single instance.
 
 	<tag>debug <m/protocol/|<m/pattern/|all all|off|{ states | routes | filters | events | packets }</tag>
 	Control protocol debugging.
+
+	<tag>dump resources|sockets|interfaces|neighbors|attributes|routes|protocols</tag>
+	Dump contents of internal data structures to the debugging output.
+
+	<tag>echo all|off|{ <m/list of log classes/ } [ <m/buffer-size/ ]</tag>
+	Control echoing of log messages to the command-line output.
+	See <ref id="dsc-log" name="log option"> for a list of log classes.
+
+	<tag>eval <m/expr/</tag>
+	Evaluate given expression.
+
 </descrip>
 
 <chapt>Filters
@@ -897,10 +931,16 @@ incompatible with each other (that is to prevent you from shooting in the foot).
 	  from 0 to 255. Literals of this type are written like IPv4
 	  addresses.
 
-	<tag/string/ This is a string of characters. There are no ways to modify strings in
-	  filters. You can pass them between functions, assign them to variables of type <cf/string/, print
-	  such variables, but you can't concatenate two strings. String literals
-	  are written as <cf/"This is a string constant"/.
+	<tag/string/ This is a string of characters. There are no ways
+	  to modify strings in filters. You can pass them between
+	  functions, assign them to variables of type <cf/string/,
+	  print such variables, use standard string comparison
+	  operations (e.g. <cf/=, !=, &lt;, &gt;, &lt;=, &gt;=/), but
+	  you can't concatenate two strings. String literals are
+	  written as <cf/"This is a string constant"/. Additionaly
+	  matching <cf/&tilde;/ operator could be used to match a
+	  string value against a shell pattern (represented also as a
+	  string).
 
 	<tag/ip/ This type can hold a single IP address. Depending on the compile-time configuration of BIRD you are using, it
 	  is either an IPv4 or IPv6 address. IP addresses are written in the standard notation (<cf/10.20.30.40/ or <cf/fec0:3:4::1/). You can apply special operator <cf>.mask(<M>num</M>)</cf>
@@ -1002,10 +1042,23 @@ incompatible with each other (that is to prevent you from shooting in the foot).
 
           <cf><m/P/.len</cf> returns the length of path <m/P/.
 
-          <cf>prepend(<m/P/,<m/A/)</cf> prepends ASN <m/A/ to path <m/P/ and returns the result.
+          <cf>prepend(<m/P/,<m/A/)</cf> prepends ASN <m/A/ to path
+          <m/P/ and returns the result.
+
+          <cf>delete(<m/P/,<m/A/)</cf> deletes all instances of ASN
+	  <m/A/ from from path <m/P/ and returns the result.
+	  <m/A/ may also be an integer set, in that case the
+	  operator deletes all ASNs from path <m/P/ that are also
+	  members of set <m/A/.
+
+          <cf>filter(<m/P/,<m/A/)</cf> deletes all ASNs from path
+	  <m/P/ that are not members of integer set <m/A/.
+	  I.e., <cf/filter/ do the same as <cf/delete/ with inverted
+	  set <m/A/.
+
           Statement <cf><m/P/ = prepend(<m/P/, <m/A/);</cf> can be shortened to
           <cf><m/P/.prepend(<m/A/);</cf> if <m/P/ is appropriate route attribute
-          (for example <cf/bgp_path/).
+          (for example <cf/bgp_path/). Similarly for <cf/delete/ and <cf/filter/.
 
 	<tag/bgpmask/
 	  BGP masks are patterns used for BGP path matching
@@ -1026,6 +1079,8 @@ incompatible with each other (that is to prevent you from shooting in the foot).
 	  of pairs) and for cluster list (a set of quads). There exist
 	  no literals of this type. There are three special operators on
 	  clists:
+
+	  <cf><m/C/.len</cf> returns the length of clist <m/C/.
 
           <cf>add(<m/C/,<m/P/)</cf> adds pair (or quad) <m/P/ to clist
 	  <m/C/ and returns the result.  If item <m/P/ is already in
@@ -1067,7 +1122,7 @@ incompatible with each other (that is to prevent you from shooting in the foot).
 Special operators include <cf/&tilde;/ for "is element of a set" operation - it can be
 used on element and set of elements of the same type (returning true if element is contained in the given set), or
 on two strings (returning true if first string matches a shell-like pattern stored in second string) or on IP and prefix (returning true if IP is within the range defined by that prefix), or on
-prefix and prefix (returning true if first prefix is more specific than second one) or on bgppath and bgpmask (returning true if the path matches the mask) or on number and bgppath (returning true if the number is in the path) or on pair/quad and clist (returning true if the pair/quad is element of the clist) or on clist and pair/quad set (returning true if there is an element of the clist that is also a member of the pair/quad set).
+prefix and prefix (returning true if first prefix is more specific than second one) or on bgppath and bgpmask (returning true if the path matches the mask) or on number and bgppath (returning true if the number is in the path) or on bgppath and int (number) set (returning true if any ASN from the path is in the set) or on pair/quad and clist (returning true if the pair/quad is element of the clist) or on clist and pair/quad set (returning true if there is an element of the clist that is also a member of the pair/quad set).
 
 <p>There is one operator related to ROA infrastructure -
 <cf/roa_check()/. It examines a ROA table and does RFC 6483 route
@@ -1138,7 +1193,7 @@ undefined value is regarded as empty clist for most purposes.
 	Preference of the route. Valid values are 0-65535. (See the chapter about routing tables.)
 
 	<tag><m/ip/ from</tag>
-	The router which the route has originated from. Read-only.
+	The router which the route has originated from.
 	
 	<tag><m/ip/ gw</tag>
 	Next hop packets routed using this route should be forwarded to.
@@ -1150,7 +1205,6 @@ undefined value is regarded as empty clist for most purposes.
 	what protocol has told me about this route. Possible values: <cf/RTS_DUMMY/, <cf/RTS_STATIC/, <cf/RTS_INHERIT/, <cf/RTS_DEVICE/, <cf/RTS_STATIC_DEVICE/, <cf/RTS_REDIRECT/, <cf/RTS_RIP/, <cf/RTS_OSPF/, <cf/RTS_OSPF_IA/, <cf/RTS_OSPF_EXT1/, <cf/RTS_OSPF_EXT2/, <cf/RTS_BGP/, <cf/RTS_PIPE/.
 
 	<tag><m/enum/ cast</tag>
-
 	Route type (Currently <cf/RTC_UNICAST/ for normal routes,
 	<cf/RTC_BROADCAST/, <cf/RTC_MULTICAST/, <cf/RTC_ANYCAST/ will
 	be used in the future for broadcast, multicast and anycast
@@ -1167,6 +1221,19 @@ undefined value is regarded as empty clist for most purposes.
 	administratively prohibited messages). Can be changed, but
 	only to <cf/RTD_BLACKHOLE/, <cf/RTD_UNREACHABLE/ or
 	<cf/RTD_PROHIBIT/.
+
+	<tag><m/string/ ifname</tag>
+	Name of the outgoing interface. Sink routes (like blackhole,
+	unreachable or prohibit) and multipath routes have no interface
+	associated with them, so <cf/ifname/ returns an empty string for
+	such routes. Read-only.
+
+	<tag><m/int/ ifindex</tag>
+	Index of the outgoing interface. System wide index of the
+	interface. May be used for interface matching, however
+	indexes might change on interface creation/removal. Zero is
+	returned for routes with undefined outgoing
+	interfaces. Read-only.
 
 	<tag><m/int/ igp_metric</tag>
 	The optional attribute that can be used to specify a distance
@@ -1328,6 +1395,11 @@ for each neighbor using the following configuration parameters:
 	circumvent misconfigurations of other routers.  Default:
 	disabled.
 
+	<tag>next hop keep</tag> Forward the received Next Hop
+	attribute even in situations where the local address should be
+	used instead, like when the route is sent to an interface with
+	a different subnet. Default: disabled.
+
 	<tag>missing lladdr self|drop|ignore</tag>Next Hop attribute
 	in BGP-IPv6 sometimes contains just the global IPv6 address,
 	but sometimes it has to contain both global and link-local
@@ -1460,8 +1532,9 @@ for each neighbor using the following configuration parameters:
 
 	<tag>route limit <m/number/</tag> The maximal number of routes
 	that may be imported from the protocol. If the route limit is
-	exceeded, the connection is closed with error. Limit is currently implemented as
-	<cf/import limit number exceed restart/. Default: no limit.
+	exceeded, the connection is closed with an error. Limit is currently implemented as
+	<cf/import limit <m/number/ action restart/. This option is obsolete and it is
+        replaced by <ref id="import-limit" name="import limit option">.  Default: no limit.
 
 	<tag>disable after error <m/switch/</tag> When an error is encountered (either
 	locally or by the other side), disable the instance automatically
@@ -1892,6 +1965,7 @@ on nonbroadcast networks.
 <code>
 protocol ospf &lt;name&gt; {
 	rfc1583compat &lt;switch&gt;;
+	stub router &lt;switch&gt;;
 	tick &lt;num&gt;;
 	ecmp &lt;switch&gt; [limit &lt;num&gt;];
 	area &lt;id&gt; {
@@ -1934,8 +2008,12 @@ protocol ospf &lt;name&gt; {
 				nonbroadcast|nbma|pointomultipoint|ptmp];
 			strict nonbroadcast &lt;switch&gt;;
 			real broadcast &lt;switch&gt;;
+			ptp netmask &lt;switch&gt;;
 			check link &lt;switch&gt;;
 			ecmp weight &lt;num&gt;;
+			ttl security [&lt;switch&gt;; | tx only]
+			tx class|dscp &lt;num&gt;;
+			tx priority &lt;num&gt;;
 			authentication [none|simple|cryptographic];
 			password "&lt;text&gt;";
 			password "&lt;text&gt;" {
@@ -1969,6 +2047,15 @@ protocol ospf &lt;name&gt; {
 	 calculation with RFC 1583<htmlurl
 	 url="ftp://ftp.rfc-editor.org/in-notes/rfc1583.txt">. Default
 	 value is no.
+
+	<tag>stub router <M>switch</M></tag>
+	 This option configures the router to be a stub router, i.e.,
+	 a router that participates in the OSPF topology but does not
+	 allow transit traffic. In OSPFv2, this is implemented by
+	 advertising maximum metric for outgoing links, as suggested
+	 by RFC 3137<htmlurl url="ftp://ftp.rfc-editor.org/in-notes/rfc3137.txt">.
+	 In OSPFv3, the stub router behavior is announced by clearing
+	 the R-bit in the router LSA. Default value is no.
 
 	<tag>tick <M>num</M></tag>
 	 The routing table calculation and clean-up of areas' databases
@@ -2177,6 +2264,18 @@ protocol ospf &lt;name&gt; {
 	 probably is not interoperable with other OSPF
 	 implementations. Default value is no.
 
+	<tag>ptp netmask <m/switch/</tag>
+	 In <cf/type ptp/ network configurations, OSPFv2
+	 implementations should ignore received netmask field in hello
+	 packets and should send hello packets with zero netmask field
+	 on unnumbered PtP links. But some OSPFv2 implementations
+	 perform netmask checking even for PtP links. This option
+	 specifies whether real netmask will be used in hello packets
+	 on <cf/type ptp/ interfaces. You should ignore this option
+	 unless you meet some compatibility problems related to this
+	 issue. Default value is no for unnumbered PtP links, yes
+	 otherwise.
+
 	<tag>check link <M>switch</M></tag>
 	 If set, a hardware link state (reported by OS) is taken into
 	 consideration. When a link disappears (e.g. an ethernet cable is
@@ -2184,6 +2283,25 @@ protocol ospf &lt;name&gt; {
 	 and only the address of the iface (instead of whole network
 	 prefix) is propagated. It is possible that some hardware
 	 drivers or platforms do not implement this feature. Default value is no.
+
+	<tag>ttl security [<m/switch/ | tx only]</tag>
+	 TTL security is a feature that protects routing protocols
+	 from remote spoofed packets by using TTL 255 instead of TTL 1
+	 for protocol packets destined to neighbors. Because TTL is
+	 decremented when packets are forwarded, it is non-trivial to
+	 spoof packets with TTL 255 from remote locations. Note that
+	 this option would interfere with OSPF virtual links.
+
+	 If this option is enabled, the router will send OSPF packets
+	 with TTL 255 and drop received packets with TTL less than
+	 255. If this option si set to <cf/tx only/, TTL 255 is used
+	 for sent packets, but is not checked for received
+	 packets. Default value is no.
+
+	<tag>tx class|dscp|priority <m/num/</tag>
+         These options specify the ToS/DiffServ/Traffic class/Priority
+         of the outgoing OSPF packets. See <ref id="dsc-prio" name="tx
+         class"> common option for detailed description.
 
 	<tag>ecmp weight <M>num</M></tag>
 	 When ECMP (multipath) routes are allowed, this value specifies
@@ -2211,7 +2329,10 @@ protocol ospf &lt;name&gt; {
 	<tag>neighbors { <m/set/ } </tag>
 	 A set of neighbors to which Hello messages on NBMA or PtMP
 	 networks are to be sent. For NBMA networks, some of them
-	 could be marked as eligible.
+	 could be marked as eligible. In OSPFv3, link-local addresses
+	 should be used, using global ones is possible, but it is
+	 nonstandard and might be problematic. And definitely,
+	 link-local and global addresses should not be mixed.
 
 </descrip>
 
@@ -2343,7 +2464,7 @@ another one.
 	<tag>peer table <m/table/</tag> Defines secondary routing table to connect to. The
 	primary one is selected by the <cf/table/ keyword.
 
-	<tag>mode opaque|transparent</tag> Specifies the mode for the pipe to work in. Default is opaque.
+	<tag>mode opaque|transparent</tag> Specifies the mode for the pipe to work in. Default is transparent.
 </descrip>
 
 <sect1>Attributes
@@ -2479,6 +2600,26 @@ interface definitions, prefix definitions and DNS definitions:
 	also as interface-specific options and there is a short
 	variant <cf>dnssl <m/domain/</cf> that just specifies one DNS
         search domain.
+
+	<label id="dsc-trigger"> <tag>trigger <m/prefix/</tag>
+	RAdv protocol could be configured to change its behavior based
+	on availability of routes. When this option is used, the
+	protocol waits in suppressed state until a <it/trigger route/
+	(for the specified network) is exported to the protocol, the
+	protocol also returnsd to suppressed state if the
+	<it/trigger route/ disappears. Note that route export depends
+	on specified export filter, as usual. This option could be
+	used, e.g., for handling failover in multihoming scenarios.
+
+	During suppressed state, router advertisements are generated,
+	but with some fields zeroed. Exact behavior depends on which
+	fields are zeroed, this can be configured by
+	<cf/sensitive/ option for appropriate fields. By default, just
+	<cf/default lifetime/ (also called <cf/router lifetime/) is
+	zeroed, which means hosts cannot use the router as a default
+	router. <cf/preferred lifetime/ and <cf/valid lifetime/ could
+	also be configured as <cf/sensitive/ for a prefix, which would
+	cause autoconfigured IPs to be deprecated or even removed.
 </descrip>
 
 <p>Interface specific options:
@@ -2525,11 +2666,12 @@ interface definitions, prefix definitions and DNS definitions:
 	This option specifies which value of Hop Limit should be used
 	by hosts. Valid values are 0-255, 0 means unspecified. Default: 64
 
-	<tag>default lifetime <m/expr/</tag>
+	<tag>default lifetime <m/expr/ [sensitive <m/switch/]</tag>
 	This option specifies the time (in seconds) how long (after
 	the receipt of RA) hosts may use the router as a default
-	router. 0 means do not use as a default router. Default: 3 *
-	<cf/max ra interval/.
+	router. 0 means do not use as a default router. For
+	<cf/sensitive/ option, see <ref id="dsc-trigger" name="trigger">.
+	Default: 3 * <cf/max ra interval/, <cf/sensitive/ yes.
 
 	<tag>rdnss local <m/switch/</tag>
 	Use only local (interface-specific) RDNSS definitions for this
@@ -2546,6 +2688,13 @@ interface definitions, prefix definitions and DNS definitions:
 <p>Prefix specific options:
 
 <descrip>
+	<tag>skip <m/switch/</tag>
+	This option allows to specify that given prefix should not be
+	advertised. This is useful for making exceptions from a
+	default policy of advertising all prefixes. Note that for
+	withdrawing an already advertised prefix it is more useful to
+	advertise it with zero valid lifetime. Default: no
+
 	<tag>onlink <m/switch/</tag>
 	This option specifies whether hosts may use the advertised
 	prefix for onlink determination. Default: yes
@@ -2554,18 +2703,20 @@ interface definitions, prefix definitions and DNS definitions:
 	This option specifies whether hosts may use the advertised
 	prefix for stateless autoconfiguration. Default: yes
 
-	<tag>valid lifetime <m/expr/</tag>
+	<tag>valid lifetime <m/expr/ [sensitive <m/switch/]</tag>
 	This option specifies the time (in seconds) how long (after
 	the receipt of RA) the prefix information is valid, i.e.,
 	autoconfigured IP addresses can be assigned and hosts with
 	that IP addresses are considered directly reachable. 0 means
-	the prefix is no longer valid. Default: 86400 (1 day)
+	the prefix is no longer valid. For <cf/sensitive/ option, see
+	<ref id="dsc-trigger" name="trigger">. Default: 86400 (1 day), <cf/sensitive/ no.
 
-	<tag>preferred lifetime <m/expr/</tag>
+	<tag>preferred lifetime <m/expr/ [sensitive <m/switch/]</tag>
 	This option specifies the time (in seconds) how long (after
 	the receipt of RA) IP addresses generated from the prefix
-	using stateless autoconfiguration remain preferred. Default:
-	14400 (4 hours)
+	using stateless autoconfiguration remain preferred. For
+	<cf/sensitive/ option, see <ref id="dsc-trigger" name="trigger">.
+	Default: 14400 (4 hours), <cf/sensitive/ no.
 </descrip>
 
 
@@ -2680,13 +2831,46 @@ makes it pretty much obsolete. (It is still usable on very small networks.)
 	  neighbors, that is not configurable. Default: never.
 </descrip>
 
-<p>There are two options that can be specified per-interface. First is <cf>metric</cf>, with
-default one.  Second is <cf>mode multicast|broadcast|quiet|nolisten|version1</cf>, it selects mode for
-rip to work in. If nothing is specified, rip runs in multicast mode. <cf>version1</cf> is
-currently equivalent to <cf>broadcast</cf>, and it makes RIP talk to a broadcast address even
-through multicast mode is possible. <cf>quiet</cf> option means that RIP will not transmit
-any periodic messages to this interface and <cf>nolisten</cf> means that RIP will send to this
-interface but not listen to it.
+<p>There are some options that can be specified per-interface:
+
+<descrip>
+	<tag>metric <m/num/</tag>
+	  This option specifies the metric of the interface. Valid
+
+	<tag>mode multicast|broadcast|quiet|nolisten|version1</tag>
+	  This option selects the mode for RIP to work in. If nothing is
+	  specified, RIP runs in multicast mode. <cf/version1/ is
+	  currently equivalent to <cf/broadcast/, and it makes RIP talk
+	  to a broadcast address even through multicast mode is
+	  possible. <cf/quiet/ option means that RIP will not transmit
+	  any periodic messages to this interface and <cf/nolisten/
+	  means that RIP will send to this interface butnot listen to it.
+
+	<tag>ttl security [<m/switch/ | tx only]</tag>
+	 TTL security is a feature that protects routing protocols
+	 from remote spoofed packets by using TTL 255 instead of TTL 1
+	 for protocol packets destined to neighbors. Because TTL is
+	 decremented when packets are forwarded, it is non-trivial to
+	 spoof packets with TTL 255 from remote locations.
+
+	 If this option is enabled, the router will send RIP packets
+	 with TTL 255 and drop received packets with TTL less than
+	 255. If this option si set to <cf/tx only/, TTL 255 is used
+	 for sent packets, but is not checked for received
+	 packets. Such setting does not offer protection, but offers
+	 compatibility with neighbors regardless of whether they use
+	 ttl security.
+
+	 Note that for RIPng, TTL security is a standard behavior
+	 (required by RFC 2080), but BIRD uses <cf/tx only/ by
+	 default, for compatibility with older versions. For IPv4 RIP,
+	 default value is no.
+
+	<tag>tx class|dscp|priority <m/num/</tag>
+          These options specify the ToS/DiffServ/Traffic class/Priority
+          of the outgoing RIP packets. See <ref id="dsc-prio" name="tx
+          class"> common option for detailed description.
+</descrip>
 
 <p>The following options generally override behavior specified in RFC. If you use any of these
 options, BIRD will no longer be RFC-compliant, which means it will not be able to talk to anything
@@ -2704,7 +2888,7 @@ other than equally configured BIRD. I have warned you.
 	<tag>period <M>number</M>
 	  </tag>specifies the number of seconds between periodic updates. Default is 30 seconds. A lower
 	  number will mean faster convergence but bigger network
-	  load. Do not use values lower than 10.
+	  load. Do not use values lower than 12.
 
 	<tag>timeout time <M>number</M>
 	  </tag>specifies how old route has to be to be considered unreachable. Default is 4*<cf/period/.
@@ -2734,7 +2918,7 @@ other than equally configured BIRD. I have warned you.
 protocol rip MyRIP_test {
         debug all;
         port 1520;
-        period 10;
+        period 12;
         garbage time 60;
         interface "eth0" { metric 3; mode multicast; };
 	interface "eth*" { metric 2; mode broadcast; };

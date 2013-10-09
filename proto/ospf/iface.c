@@ -77,7 +77,8 @@ ospf_sk_open(struct ospf_iface *ifa)
   sk->dport = OSPF_PROTO;
   sk->saddr = IPA_NONE;
 
-  sk->tos = IP_PREC_INTERNET_CONTROL;
+  sk->tos = ifa->cf->tx_tos;
+  sk->priority = ifa->cf->tx_priority;
   sk->rx_hook = ospf_rx_hook;
   sk->tx_hook = ospf_tx_hook;
   sk->err_hook = ospf_err_hook;
@@ -85,7 +86,8 @@ ospf_sk_open(struct ospf_iface *ifa)
   sk->rbsize = rxbufsize(ifa);
   sk->tbsize = rxbufsize(ifa);
   sk->data = (void *) ifa;
-  sk->flags = SKF_LADDR_RX;
+  sk->flags = SKF_LADDR_RX | (ifa->check_ttl ? SKF_TTL_RX : 0);
+  sk->ttl = ifa->cf->ttl_security ? 255 : -1;
 
   if (sk_open(sk) != 0)
     goto err;
@@ -130,7 +132,7 @@ ospf_sk_open(struct ospf_iface *ifa)
     else
     {
       ifa->all_routers = AllSPFRouters;
-      sk->ttl = 1;	/* Hack, this will affect just multicast packets */
+      sk->ttl = ifa->cf->ttl_security ? 255 : 1;
 
       if (sk_setup_multicast(sk) < 0)
         goto err;
@@ -533,10 +535,14 @@ ospf_iface_new(struct ospf_area *oa, struct ifa *addr, struct ospf_iface_patt *i
   ifa->rxbuf = ip->rxbuf;
   ifa->check_link = ip->check_link;
   ifa->ecmp_weight = ip->ecmp_weight;
+  ifa->check_ttl = (ip->ttl_security == 1);
 
 #ifdef OSPFv2
   ifa->autype = ip->autype;
   ifa->passwords = ip->passwords;
+  ifa->ptp_netmask = addr ? !(addr->flags & IA_PEER) : 0;
+  if (ip->ptp_netmask < 2)
+    ifa->ptp_netmask = ip->ptp_netmask;
 #endif
 
 #ifdef OSPFv3
@@ -574,8 +580,22 @@ ospf_iface_new(struct ospf_area *oa, struct ifa *addr, struct ospf_iface_patt *i
   init_list(&ifa->nbma_list);
 
   WALK_LIST(nb, ip->nbma_list)
-    if (ipa_in_net(nb->ip, addr->prefix, addr->pxlen))
-      add_nbma_node(ifa, nb, 0);
+  {
+    /* In OSPFv3, addr is link-local while configured neighbors could
+       have global IP (although RFC 5340 C.5 says link-local addresses
+       should be used). Because OSPFv3 iface is not subnet-specific,
+       there is no need for ipa_in_net() check */
+
+#ifdef OSPFv2
+    if (!ipa_in_net(nb->ip, addr->prefix, addr->pxlen))
+      continue;
+#else
+    if (!ipa_has_link_scope(nb->ip))
+      log(L_WARN "In OSPFv3, configured neighbor address (%I) should be link-local", nb->ip);
+#endif
+
+    add_nbma_node(ifa, nb, 0);
+  }
 
   ifa->state = OSPF_IS_DOWN;
   add_tail(&oa->po->iface_list, NODE ifa);
@@ -642,7 +662,11 @@ ospf_iface_reconfigure(struct ospf_iface *ifa, struct ospf_iface_patt *new)
   if (ifa->stub != new_stub)
     return 0;
 
-  if (new->real_bcast != ifa->cf->real_bcast)
+  /* Change of these options would require to reset the iface socket */
+  if ((new->real_bcast != ifa->cf->real_bcast) ||
+      (new->tx_tos != ifa->cf->tx_tos) ||
+      (new->tx_priority != ifa->cf->tx_priority) ||
+      (new->ttl_security != ifa->cf->ttl_security))
     return 0;
 
   ifa->cf = new;
@@ -771,8 +795,14 @@ ospf_iface_reconfigure(struct ospf_iface *ifa, struct ospf_iface_patt *new)
   /* NBMA LIST - add new */
   WALK_LIST(nb, new->nbma_list)
   {
+    /* See related note in ospf_iface_new() */
+#ifdef OSPFv2
     if (!ipa_in_net(nb->ip, ifa->addr->prefix, ifa->addr->pxlen))
       continue;
+#else
+    if (!ipa_has_link_scope(nb->ip))
+      log(L_WARN "In OSPFv3, configured neighbor address (%I) should be link-local", nb->ip);
+#endif
 
     if (! find_nbma_node(ifa, nb->ip))
     {

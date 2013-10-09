@@ -24,6 +24,7 @@ struct bgp_config {
   int multihop;				/* Number of hops if multihop */
   int ttl_security;			/* Enable TTL security [RFC5082] */
   int next_hop_self;			/* Always set next hop to local IP address */
+  int next_hop_keep;			/* Do not touch next hop attribute */
   int missing_lladdr;			/* What we will do when we don' know link-local addr, see MLL_* */
   int gw_mode;				/* How we compute route gateway from next_hop attr, see GW_* */
   int compare_path_lengths;		/* Use path lengths when selecting best route */
@@ -252,6 +253,8 @@ void bgp_log_error(struct bgp_proto *p, u8 class, char *msg, unsigned code, unsi
 #define BS_OPENCONFIRM		4
 #define BS_ESTABLISHED		5
 #define BS_CLOSE		6	/* Used during transition to BS_IDLE */
+
+#define BS_MAX			7
 
 /* BGP start states
  * 

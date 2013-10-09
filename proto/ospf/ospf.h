@@ -91,14 +91,15 @@ struct ospf_config
   struct proto_config c;
   unsigned tick;
   byte rfc1583;
-#ifdef OSPFv3
-  byte dridd;                   /* Is duplicate RID detection enabled? */
-  char *elsa_path;              /* Where does the elsa.lua reside? */
-#endif
+  byte stub_router;
   byte abr;
   int ecmp;
   list area_list;		/* list of struct ospf_area_config */
   list vlink_list;		/* list of struct ospf_iface_patt */
+#ifdef OSPFv3
+  byte dridd;                   /* Is duplicate RID detection enabled? */
+  char *elsa_path;              /* Where does the elsa.lua reside? */
+#endif
 };
 
 struct nbma_node
@@ -285,6 +286,8 @@ struct ospf_iface
   u16 rxbuf;			/* Buffer size */
   u8 check_link;		/* Whether iface link change is used */
   u8 ecmp_weight;		/* Weight used for ECMP */
+  u8 ptp_netmask;		/* Send real netmask for P2P */
+  u8 check_ttl;			/* Check incoming packets for TTL 255 */
 };
 
 struct ospf_md5
@@ -782,6 +785,7 @@ struct proto_ospf
   int areano;			/* Number of area I belong to */
   struct fib rtf;		/* Routing table */
   byte rfc1583;			/* RFC1583 compatibility */
+  byte stub_router;		/* Do not forward transit traffic */
   byte ebit;			/* Did I originate any ext lsa? */
   byte ecmp;			/* Maximal number of nexthops in ECMP route, or 0 */
   struct ospf_area *backbone;	/* If exists */
@@ -817,6 +821,8 @@ struct ospf_iface_patt
   u32 priority;
   u32 voa;
   u32 vid;
+  int tx_tos;
+  int tx_priority;
   u16 rxbuf;
 #define OSPF_RXBUF_NORMAL 0
 #define OSPF_RXBUF_LARGE 1
@@ -830,6 +836,8 @@ struct ospf_iface_patt
   u8 check_link;
   u8 ecmp_weight;
   u8 real_bcast;		/* Not really used in OSPFv3 */
+  u8 ptp_netmask;		/* bool + 2 for unspecified */
+  u8 ttl_security;		/* bool + 2 for TX only */
 
 #ifdef OSPFv2
   list *passwords;

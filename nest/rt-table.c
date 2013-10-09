@@ -213,7 +213,8 @@ export_filter(struct announce_hook *ah, rte *rt0, rte **rt_free, ea_list **tmpa,
 	goto reject;
 
       stats->exp_updates_rejected++;
-      rte_trace_out(D_FILTERS, p, rt, "rejected by protocol");
+      if (v == RIC_REJECT)
+	rte_trace_out(D_FILTERS, p, rt, "rejected by protocol");
       goto reject;
     }
   if (v > 0)
@@ -905,6 +906,26 @@ rte_update_unlock(void)
     lp_flush(rte_update_pool);
 }
 
+static inline void
+rte_hide_dummy_routes(net *net, rte **dummy)
+{
+  if (net->routes && net->routes->attrs->source == RTS_DUMMY)
+  {
+    *dummy = net->routes;
+    net->routes = (*dummy)->next;
+  }
+}
+
+static inline void
+rte_unhide_dummy_routes(net *net, rte **dummy)
+{
+  if (*dummy)
+  {
+    (*dummy)->next = net->routes;
+    net->routes = *dummy;
+  }
+}
+
 /**
  * rte_update - enter a new update to a routing table
  * @table: table to be updated
@@ -954,6 +975,7 @@ rte_update2(struct announce_hook *ah, net *net, rte *new, struct proto *src)
   struct proto_stats *stats = ah->stats;
   struct filter *filter = ah->in_filter;
   ea_list *tmpa = NULL;
+  rte *dummy = NULL;
 
   rte_update_lock();
   if (new)
@@ -1009,14 +1031,18 @@ rte_update2(struct announce_hook *ah, net *net, rte *new, struct proto *src)
   else
     stats->imp_withdraws_received++;
 
+ recalc:
+  rte_hide_dummy_routes(net, &dummy);
   rte_recalculate(ah, net, new, tmpa, src);
+  rte_unhide_dummy_routes(net, &dummy);
   rte_update_unlock();
   return;
 
-drop:
+ drop:
   rte_free(new);
-  rte_recalculate(ah, net, NULL, NULL, src);
-  rte_update_unlock();
+  new = NULL;
+  tmpa = NULL;
+  goto recalc;
 }
 
 /* Independent call to rte_announce(), used from next hop
@@ -1040,6 +1066,34 @@ rte_discard(rtable *t, rte *old)	/* Non-filtered route deletion, used during gar
   rte_update_lock();
   rte_recalculate(old->sender, old->net, NULL, NULL, old->attrs->proto);
   rte_update_unlock();
+}
+
+/* Check rtable for best route to given net whether it would be exported do p */
+int
+rt_examine(rtable *t, ip_addr prefix, int pxlen, struct proto *p, struct filter *filter)
+{
+  net *n = net_find(t, prefix, pxlen);
+  rte *rt = n ? n->routes : NULL;
+
+  if (!rte_is_valid(rt))
+    return 0;
+
+  rte_update_lock();
+
+  /* Rest is stripped down export_filter() */
+  struct proto *src = rt->attrs->proto;
+  ea_list *tmpa = src->make_tmp_attrs ? src->make_tmp_attrs(rt, rte_update_pool) : NULL;
+  int v = p->import_control ? p->import_control(p, &rt, &tmpa, rte_update_pool) : 0;
+  if (v == RIC_PROCESS)
+    v = (f_run(filter, &rt, &tmpa, rte_update_pool, FF_FORCE_TMPATTR) <= F_ACCEPT);
+
+   /* Discard temporary rte */
+  if (rt != n->routes)
+    rte_free(rt);
+
+  rte_update_unlock();
+
+  return v > 0;
 }
 
 /**
@@ -1214,19 +1268,8 @@ rt_init(void)
 }
 
 
-/* Called from proto_schedule_flush_loop() only,
-   ensuring that all prune states are zero */
-void
-rt_schedule_prune_all(void)
-{
-  rtable *t;
-
-  WALK_LIST(t, routing_tables)
-    t->prune_state = 1;
-}
-
 static inline int
-rt_prune_step(rtable *tab, int *max_feed)
+rt_prune_step(rtable *tab, int step, int *max_feed)
 {
   struct fib_iterator *fit = &tab->prune_fit;
 
@@ -1252,14 +1295,18 @@ again:
 
     rescan:
       for (e=n->routes; e; e=e->next)
-	if (e->sender->proto->core_state != FS_HAPPY &&
-	    e->sender->proto->core_state != FS_FEEDING)
+	if (e->sender->proto->flushing ||
+	    (step && e->attrs->proto->flushing))
 	  {
 	    if (*max_feed <= 0)
 	      {
 		FIB_ITERATE_PUT(fit, fn);
 		return 0;
 	      }
+
+	    if (step)
+	      log(L_WARN "Route %I/%d from %s still in %s after flush",
+		  n->n.prefix, n->n.pxlen, e->attrs->proto->name, tab->name);
 
 	    rte_discard(tab, e);
 	    (*max_feed)--;
@@ -1285,23 +1332,42 @@ again:
 
 /**
  * rt_prune_loop - prune routing tables
- * @tab: routing table to be pruned
  *
  * The prune loop scans routing tables and removes routes belonging to
- * inactive protocols and also stale network entries. Returns 1 when
+ * flushing protocols and also stale network entries. Returns 1 when
  * all such routes are pruned. It is a part of the protocol flushing
  * loop.
+ *
+ * The prune loop runs in two steps. In the first step it prunes just
+ * the routes with flushing senders (in explicitly marked tables) so
+ * the route removal is propagated as usual. In the second step, all
+ * remaining relevant routes are removed. Ideally, there shouldn't be
+ * any, but it happens when pipe filters are changed.
  */
 int
 rt_prune_loop(void)
 {
-  rtable *t;
+  static int step = 0;
   int max_feed = 512;
+  rtable *t;
 
+ again:
   WALK_LIST(t, routing_tables)
-    if (! rt_prune_step(t, &max_feed))
+    if (! rt_prune_step(t, step, &max_feed))
       return 0;
 
+  if (step == 0)
+    {
+      /* Prepare for the second step */
+      WALK_LIST(t, routing_tables)
+	t->prune_state = 1;
+
+      step = 1;
+      goto again;
+    }
+
+  /* Done */
+  step = 0;
   return 1;
 }
 
@@ -2081,7 +2147,7 @@ rt_show_net(struct cli *c, net *n, struct rt_show_data *d)
       ee = e;
       rte_update_lock();		/* We use the update buffer for filtering */
       tmpa = p0->make_tmp_attrs ? p0->make_tmp_attrs(e, rte_update_pool) : NULL;
-      ok = (d->filter == FILTER_ACCEPT || f_run(d->filter, &e, &tmpa, rte_update_pool, FF_FORCE_TMPATTR) <= F_ACCEPT);
+      ok = f_run(d->filter, &e, &tmpa, rte_update_pool, FF_FORCE_TMPATTR) <= F_ACCEPT;
       if (p2 && p2 != p0) ok = 0;
       if (ok && d->export_mode)
 	{
@@ -2095,8 +2161,8 @@ rt_show_net(struct cli *c, net *n, struct rt_show_data *d)
 		 'configure soft' command may change the export filter
 		 and do not update routes */
 
-	      if ((a = proto_find_announce_hook(p1, d->table)) && ((a->out_filter == FILTER_REJECT) ||
-		  (a->out_filter && f_run(a->out_filter, &e, &tmpa, rte_update_pool, FF_FORCE_TMPATTR) > F_ACCEPT)))
+	      if ((a = proto_find_announce_hook(p1, d->table)) && 
+		  (f_run(a->out_filter, &e, &tmpa, rte_update_pool, FF_FORCE_TMPATTR) > F_ACCEPT))
 		ok = 0;
 	    }
 	}
@@ -2174,6 +2240,11 @@ void
 rt_show(struct rt_show_data *d)
 {
   net *n;
+
+  /* Default is either a master table or a table related to a respective protocol */
+  if ((!d->table) && d->export_protocol) d->table = d->export_protocol->table;
+  if ((!d->table) && d->show_protocol) d->table = d->show_protocol->table;
+  if (!d->table) d->table = config->master_rtc->table;
 
   if (d->pxlen == 256)
     {

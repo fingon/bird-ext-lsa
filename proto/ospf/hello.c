@@ -101,6 +101,17 @@ ospf_hello_receive(struct ospf_packet *ps_i, struct ospf_iface *ifa,
     return;
   }
 
+#ifdef OSPFv2
+  if (n && (n->rid != ntohl(ps_i->routerid)))
+  {
+    OSPF_TRACE(D_EVENTS,
+	"Neighbor %I has changed router id from %R to %R.",
+	     n->ip, n->rid, ntohl(ps_i->routerid));
+    ospf_neigh_remove(n);
+    n = NULL;
+  }
+#endif
+
   if (!n)
   {
     if ((ifa->type == OSPF_IT_NBMA) || (ifa->type == OSPF_IT_PTMP))
@@ -132,7 +143,7 @@ ospf_hello_receive(struct ospf_packet *ps_i, struct ospf_iface *ifa,
 
     n = ospf_neighbor_new(ifa);
 
-    n->rid = ntohl(((struct ospf_packet *) ps)->routerid);
+    n->rid = ntohl(ps_i->routerid);
     n->ip = faddr;
     n->dr = ntohl(ps->dr);
     n->bdr = ntohl(ps->bdr);
@@ -253,7 +264,8 @@ ospf_hello_send(struct ospf_iface *ifa, int kind, struct ospf_neighbor *dirn)
 #ifdef OSPFv2
   pkt->netmask = ipa_mkmask(ifa->addr->pxlen);
   ipa_hton(pkt->netmask);
-  if ((ifa->type == OSPF_IT_VLINK) || (ifa->type == OSPF_IT_PTP))
+  if ((ifa->type == OSPF_IT_VLINK) ||
+      ((ifa->type == OSPF_IT_PTP) && !ifa->ptp_netmask))
     pkt->netmask = IPA_NONE;
 #endif
 

@@ -167,7 +167,7 @@ ospf_area_add(struct proto_ospf *po, struct ospf_area_config *ac, int reconf)
 #ifdef OSPFv2
   oa->options = ac->type;
 #else /* OSPFv3 */
-  oa->options = OPT_R | ac->type | OPT_V6;
+  oa->options = ac->type | OPT_V6 | (po->stub_router ? 0 : OPT_R);
 #endif
 
   /*
@@ -247,6 +247,7 @@ ospf_start(struct proto *p)
 #endif /* OSPFv3 */
   po->last_vlink_id = 0x80000000;
   po->rfc1583 = c->rfc1583;
+  po->stub_router = c->stub_router;
   po->ebit = 0;
   po->ecmp = c->ecmp;
   po->tick = c->tick;
@@ -712,7 +713,7 @@ ospf_area_reconfigure(struct ospf_area *oa, struct ospf_area_config *nac)
 #ifdef OSPFv2
   oa->options = nac->type;
 #else /* OSPFv3 */
-  oa->options = OPT_R | nac->type | OPT_V6;
+  oa->options = nac->type | OPT_V6 | (oa->po->stub_router ? 0 : OPT_R);
 #endif
   if (oa_is_nssa(oa) && (oa->po->areano > 1))
     oa->po->ebit = 1;
@@ -765,6 +766,7 @@ ospf_reconfigure(struct proto *p, struct proto_config *c)
     return 0; /* FIXME Can we reconfigure gracefully? */
 #endif
 
+  po->stub_router = new->stub_router;
   po->ecmp = new->ecmp;
   po->tick = new->tick;
   po->disp_timer->recurrent = po->tick;
@@ -858,6 +860,7 @@ ospf_sh(struct proto *p)
 
   cli_msg(-1014, "%s:", p->name);
   cli_msg(-1014, "RFC1583 compatibility: %s", (po->rfc1583 ? "enable" : "disabled"));
+  cli_msg(-1014, "Stub router: %s", (po->stub_router ? "Yes" : "No"));
   cli_msg(-1014, "RT scheduler tick: %d", po->tick);
   cli_msg(-1014, "Number of areas: %u", po->areano);
   cli_msg(-1014, "Number of LSAs in DB:\t%u", po->gr->hash_entries);

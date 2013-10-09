@@ -384,9 +384,11 @@ bgp_conn_enter_close_state(struct bgp_conn *conn)
   int os = conn->state;
 
   bgp_conn_set_state(conn, BS_CLOSE);
-  tm_stop(conn->hold_timer);
   tm_stop(conn->keepalive_timer);
   conn->sk->rx_hook = NULL;
+
+  /* Timeout for CLOSE state, if we cannot send notification soon then we just hangup */
+  bgp_start_timer(conn->hold_timer, 10);
 
   if (os == BS_ESTABLISHED)
     bgp_conn_leave_established_state(p);
@@ -478,8 +480,17 @@ static void
 bgp_hold_timeout(timer *t)
 {
   struct bgp_conn *conn = t->data;
+  struct bgp_proto *p = conn->bgp;
 
   DBG("BGP: Hold timeout\n");
+
+  /* We are already closing the connection - just do hangup */
+  if (conn->state == BS_CLOSE)
+  {
+    BGP_TRACE(D_EVENTS, "Connection stalled");
+    bgp_conn_enter_idle_state(conn);
+    return;
+  }
 
   /* If there is something in input queue, we are probably congested
      and perhaps just not processed BGP packets in time. */
@@ -732,6 +743,9 @@ bgp_neigh_notify(neighbor *n)
 {
   struct bgp_proto *p = (struct bgp_proto *) n->proto;
 
+  if (! (n->flags & NEF_STICKY))
+    return;
+
   if (n->scope > 0)
     {
       if ((p->p.proto_state == PS_START) && (p->start_state == BSS_PREPARE))
@@ -840,7 +854,6 @@ bgp_start(struct proto *P)
   lock->iface = p->cf->iface;
   lock->type = OBJLOCK_TCP;
   lock->port = BGP_PORT;
-  lock->iface = NULL;
   lock->hook = bgp_start_locked;
   lock->data = p;
   olock_acquire(lock);
