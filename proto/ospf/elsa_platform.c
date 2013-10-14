@@ -6,8 +6,8 @@
  * Copyright (c) 2012 cisco Systems, Inc.
  *
  * Created:       Wed Aug  1 14:14:38 2012 mstenber
- * Last modified: Thu Mar 14 13:33:24 2013 mstenber
- * Edit time:     144 min
+ * Last modified: Mon Oct 14 15:59:35 2013 mstenber
+ * Edit time:     148 min
  *
  */
 
@@ -262,6 +262,8 @@ elsa_if elsai_if_get(elsa_client client)
   elsa_if i = HEAD(client->iface_list);
   if (!NODE_VALID(i))
     i = NULL;
+  else if (i->stub)
+    return elsai_if_get_next(client, i);
   /* ELSA_DEBUG("elsai_if_get %p", i); */
   return i;
 }
@@ -291,9 +293,23 @@ uint8_t elsai_if_get_priority(elsa_client client, elsa_if i)
 
 elsa_if elsai_if_get_next(elsa_client client, elsa_if ifp)
 {
-  elsa_if i = NODE_NEXT(ifp);
-  if (!NODE_VALID(i))
-    i = NULL;
+  elsa_if i;
+
+  while ((i = NODE_NEXT(ifp)))
+    {
+      if (!NODE_VALID(i))
+        {
+          i = NULL;
+          break;
+        }
+      if (i->stub)
+        {
+          ifp = i;
+          continue;
+        }
+      /* non-stub -> we can return that. */
+      break;
+    }
   /* ELSA_DEBUG("elsai_if_get_next %p => %p", ifp, i); */
   return i;
 }
