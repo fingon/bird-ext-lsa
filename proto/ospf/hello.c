@@ -152,6 +152,12 @@ ospf_hello_receive(struct ospf_packet *ps_i, struct ospf_iface *ifa,
     n->iface_id = ntohl(ps->iface_id);
 #endif
   }
+#ifdef OSPFv3
+  else if (!ipa_equal(n->ip, faddr)) {
+    OSPF_TRACE(D_EVENTS, "Neighbor address changed from %I to %I", n->ip, faddr);
+    n->ip = faddr;
+  }
+#endif
   ospf_neigh_sm(n, INM_HELLOREC);
 
   pnrid = (u32 *) ((struct ospf_hello_packet *) (ps + 1));
