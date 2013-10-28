@@ -138,8 +138,9 @@ ospf_hello_receive(struct ospf_packet *ps_i, struct ospf_iface *ifa,
 	nn->found = 1;
     }
 
-    OSPF_TRACE(D_EVENTS, "New neighbor found: %I on %s", faddr,
-	       ifa->iface->name);
+    OSPF_TRACE(D_EVENTS, "New neighbor found: %I / %R on %s", faddr,
+               ntohl(ps_i->routerid),
+               ifa->iface->name);
 
     n = ospf_neighbor_new(ifa);
 

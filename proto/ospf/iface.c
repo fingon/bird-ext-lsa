@@ -199,7 +199,7 @@ ospf_iface_down(struct ospf_iface *ifa)
 
   WALK_LIST_DELSAFE(n, nx, ifa->neigh_list)
   {
-    OSPF_TRACE(D_EVENTS, "Removing neighbor %I", n->ip);
+    OSPF_TRACE(D_EVENTS, "Removing neighbor %I / %R", n->ip, n->rid);
     ospf_neigh_remove(n);
   }
 
