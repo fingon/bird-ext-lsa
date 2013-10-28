@@ -159,10 +159,7 @@ ospf_hello_receive(struct ospf_packet *ps_i, struct ospf_iface *ifa,
     n->ip = faddr;
   }
 #endif
-<<<<<<< HEAD
-=======
 
->>>>>>> bird/master
   ospf_neigh_sm(n, INM_HELLOREC);
 
   pnrid = (u32 *) ((struct ospf_hello_packet *) (ps + 1));
