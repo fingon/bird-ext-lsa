@@ -557,8 +557,8 @@ neighbor_timer_hook(timer * timer)
   struct proto *p = &ifa->oa->po->proto;
 
   OSPF_TRACE(D_EVENTS,
-	     "Inactivity timer fired on interface %s for neighbor %I.",
-	     ifa->iface->name, n->ip);
+	     "Inactivity timer fired on interface %s for neighbor %I / %R.",
+	     ifa->iface->name, n->ip, n->rid);
   ospf_neigh_remove(n);
 }
 
