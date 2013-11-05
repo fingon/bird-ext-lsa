@@ -485,25 +485,28 @@ ospf_disp(timer * timer)
 {
   struct proto_ospf *po = timer->data;
   struct ospf_area *oa;
+#ifdef ELSA_ENABLED
+  int calcrt;
+#endif /* ELSA_ENABLED */
 
   WALK_LIST(oa, po->area_list)
     area_disp(oa);
 
-#ifdef ELSA_ENABLED
-  /* Call the ELSA dispatch callback */
-  /* (but if and only if we aren't about to calculate routes; otherwise,
-     we should invoke it on the next iteration). This prevents extra churn,
-     and more likely leaves the system in a SANE state.. */
-  if (!po->calcrt)
-    elsa_dispatch(po->elsa);
-#endif /* ELSA_ENABLED */
-
   /* Age LSA DB */
   ospf_age(po);
+
+#ifdef ELSA_ENABLED
+  calcrt = po->calcrt;
+#endif /* ELSA_ENABLED */
 
   /* Calculate routing table */
   if (po->calcrt)
     ospf_rt_spf(po);
+
+#ifdef ELSA_ENABLED
+  /* Call the ELSA dispatch callback */
+  elsa_dispatch(po->elsa, calcrt);
+#endif /* ELSA_ENABLED */
 }
 
 

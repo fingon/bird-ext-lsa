@@ -6,8 +6,8 @@
  * Copyright (c) 2012 cisco Systems, Inc.
  *
  * Created:       Wed Aug  1 14:01:30 2012 mstenber
- * Last modified: Wed May 22 14:41:43 2013 mstenber
- * Edit time:     62 min
+ * Last modified: Tue Nov  5 19:16:27 2013 mstenber
+ * Edit time:     64 min
  *
  */
 
@@ -69,7 +69,7 @@ void elsa_destroy(elsa e)
  * the elsa correctly as elsa_dispatch parameter. */
 static elsa active_elsa;
 
-void elsa_dispatch(elsa e)
+void elsa_dispatch(elsa e, int calcrt)
 {
   int r;
 
@@ -77,12 +77,11 @@ void elsa_dispatch(elsa e)
     return;
 
   active_elsa = e;
-  /* Call LUA */
+  /* Call LUA with the calcrt flag */
   lua_getglobal(e->l, "elsa_dispatch");
-  //lua_pushlightuserdata(e->l, (void *)e);
-  //SWIG_Lua_NewPointerObj(e->l,e,SWIGTYPE_p_elsa_struct,0)
+  lua_pushinteger(e->l, calcrt);
 
-  if ((r = lua_pcall(e->l, 0, 0, 0)))
+  if ((r = lua_pcall(e->l, 1, 0, 0)))
     {
       ELSA_ERROR("error %d in LUA lua_pcall: %s", r, lua_tostring(e->l, -1));
       lua_pop(e->l, 1);

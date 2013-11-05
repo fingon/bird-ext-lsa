@@ -6,7 +6,7 @@
  * Copyright (c) 2012 cisco Systems, Inc.
  *
  * Created:       Wed Aug  1 13:31:21 2012 mstenber
- * Last modified: Thu Mar 14 13:33:43 2013 mstenber
+ * Last modified: Tue Nov  5 19:15:55 2013 mstenber
  * Edit time:     86 min
  *
  */
@@ -66,8 +66,9 @@ void elsa_notify_deleting_lsa(elsa e, elsa_lsa lsa);
 /* Notify ELSA when duplicate LSA has been received. */
 void elsa_notify_duplicate_lsa(elsa e, elsa_lsa lsa);
 
-/* Dispatch ELSA action - should be called once a second (or so). */
-void elsa_dispatch(elsa e);
+/* Dispatch ELSA action - should be called once a second (or
+   so). Indicate also if route cache has been refreshed or not. */
+void elsa_dispatch(elsa e, int calcrt);
 
 /* Destroy an ELSA instance. */
 void elsa_destroy(elsa e);

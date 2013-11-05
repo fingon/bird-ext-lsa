@@ -8,7 +8,7 @@
 -- Copyright (c) 2012 cisco Systems, Inc.
 --
 -- Created:       Wed Sep 26 23:01:06 2012 mstenber
--- Last modified: Wed Jul 17 17:35:11 2013 mstenber
+-- Last modified: Tue Nov  5 19:18:27 2013 mstenber
 -- Edit time:     181 min
 --
 
@@ -255,7 +255,7 @@ function get_elsa_pa()
    return _elsa_pa
 end
 
-function elsa_dispatch()
+function elsa_dispatch(calcrt)
    mst.d_xpcall(function ()
                    -- run the event loop also once, in non-blocking
                    -- mode (this isn't really pretty, but oh well) not
@@ -278,7 +278,7 @@ function elsa_dispatch()
                    -- XXX - should we check if we need to run the PA
                    -- alg?  If so, we should consult both SKV state,
                    -- and LSA state
-                   epa:run()
+                   epa:run(calcrt)
                 end)
 end
 

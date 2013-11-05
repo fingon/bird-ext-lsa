@@ -1894,15 +1894,18 @@ fail:
 static int _wrap_elsa_dispatch(lua_State* L) {
   int SWIG_arg = 0;
   elsa arg1 = (elsa) 0 ;
+  int arg2 ;
   
-  SWIG_check_num_args("elsa_dispatch",1,1)
+  SWIG_check_num_args("elsa_dispatch",2,2)
   if(!SWIG_isptrtype(L,1)) SWIG_fail_arg("elsa_dispatch",1,"elsa");
+  if(!lua_isnumber(L,2)) SWIG_fail_arg("elsa_dispatch",2,"int");
   
   if (!SWIG_IsOK(SWIG_ConvertPtr(L,1,(void**)&arg1,SWIGTYPE_p_elsa_struct,0))){
     SWIG_fail_ptr("elsa_dispatch",1,SWIGTYPE_p_elsa_struct);
   }
   
-  elsa_dispatch(arg1);
+  arg2 = (int)lua_tonumber(L, 2);
+  elsa_dispatch(arg1,arg2);
   
   return SWIG_arg;
   
