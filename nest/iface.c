@@ -477,7 +477,11 @@ ifa_recalc_primary(struct iface *i)
     }
 
   i->addr = a;
+#ifndef IPV6
   return 1;
+#else
+  return 0; /* In IPv6, primary IP address should NOT affect IF up/down. */
+#endif /* !IPV6 */
 }
 
 void
@@ -570,7 +574,10 @@ ifa_delete(struct ifa *a)
 	  }
 	if (b->flags & IA_PRIMARY)
 	  {
+#ifndef IPV6
+            /* In IPv6, primary IP address should NOT affect IF up/down. */
 	    if_change_flags(i, i->flags | IF_TMP_DOWN);
+#endif /* !IPV6 */
 	    ifa_recalc_primary(i);
 	  }
 	mb_free(b);
